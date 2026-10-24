@@ -75,6 +75,7 @@ body.portrait .power{font-size:15px}
 body.portrait .ghost{font-size:14px}
 body.portrait .dockbar{justify-content:stretch}
 body.portrait .dockbar button{flex:1}
+@media (max-height:480px){.hud{display:none}}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}.ui{transition:none}}
 </style>
 </head>
@@ -136,7 +137,7 @@ const pick=a=>a[Math.random()*a.length|0];
 const shade=(h,k)=>css(hex(h).map(v=>v*k));
 function disc(c,cx,cy,r,col){for(let dy=-r;dy<=r;dy++){const w=Math.floor(Math.sqrt(r*r-dy*dy));R(c,cx-w,cy+dy,2*w+1,1,col);}}
 function trap(c,cx,yTop,yBot,wTop,wBot,col,lineCol){const n=yBot-yTop;for(let i=0;i<n;i++){const t=n>1?i/(n-1):1;const w=Math.round(wTop+(wBot-wTop)*t);R(c,Math.round(cx-w/2),yTop+i,w,1,(lineCol&&i%3===2)?lineCol:col);}}
-const GL={M:['10001','11011','10101','10001','10001'],O:['111','101','101','101','111'],C:['111','100','100','100','111'],H:['101','101','111','101','101'],I:['111','010','010','010','111'],Y:['101','101','010','010','010'],A:['010','101','111','101','101']};
+const GL={' ':['00','00','00','00','00'],P:['110','101','110','100','100'],V:['101','101','101','010','010'],J:['011','001','001','101','010'],D:['110','101','101','101','110'],S:['011','100','010','001','110'],T:['111','010','010','010','010'],R:['110','101','110','101','101'],M:['10001','11011','10101','10001','10001'],O:['111','101','101','101','111'],C:['111','100','100','100','111'],H:['101','101','111','101','101'],I:['111','010','010','010','111'],Y:['101','101','010','010','010'],A:['010','101','111','101','101']};
 function ptext(c,s,x,y,col){for(const ch of s){const gl=GL[ch];if(gl)gl.forEach((row,ry)=>[...row].forEach((v,rx)=>{if(v==='1')R(c,x+rx,y+ry,1,1,col);}));x+=(gl?gl[0].length:3)+1;}}
 
 /* ---------- static background ---------- */
@@ -251,7 +252,8 @@ function moodFor(h,w){if(w==='rain')return'jhari';if(w==='fog')return'kuhiro';if
 /* ---------- people & animals ---------- */
 const SH=['#c0392b','#2e6da4','#e2b13c','#3e8e5e','#efe6d6','#7a4b8c','#d9733a','#33475b'],KU=['#c2185b','#e67e22','#8e44ad','#16a085','#d4ac0d','#b03a2e','#1f7a8c'],SK=['#8d5a3b','#a86b45','#7a4a30','#b97c52'],UM=['#22252b','#1f4e8c','#b8322a','#2d6a4f','#6b3fa0'];
 const BAL=['#e8443a','#f2c230','#3aa0e8','#e86fb4','#5fbf6a','#f08a2a','#9b6be8','#ffffff'];
-function newWalker(edge,forced){const dir=Math.random()<.5?1:-1,type=forced||pick(['man','man','woman','woman','woman','elder','child','tourist']),shirt=type==='woman'?pick(KU):pick(SH);
+let nightNow=false;
+function newWalker(edge,forced){const dir=Math.random()<.5?1:-1;let type=forced||pick(['man','man','woman','woman','woman','elder','child','tourist']);if(!forced&&nightNow&&type==='child')type='man';const shirt=type==='woman'?pick(KU):pick(SH);
   const w={dir,type,y:124+Math.random()*23,x:edge?(dir>0?-16:W+16):20+Math.random()*(W-40),sp:(type==='elder'?4.5:type==='child'?10:type==='balloon'?3.5:7.5)+Math.random()*2.5,dist:Math.random()*10,
     shirt,shirtD:shade(shirt,.75),shirt2:pick(KU),skin:pick(SK),hair:type==='elder'?'#cfc9c0':'#1b1410',
     legC:type==='woman'?'#efe2c8':type==='tourist'?'#c9b48a':pick(['#2b2b33','#3b3a46','#4a4038']),
@@ -259,6 +261,17 @@ function newWalker(edge,forced){const dir=Math.random()<.5?1:-1,type=forced||pic
     bcols:Array.from({length:7},()=>pick(BAL))};
   if(type==='tourist')w.skin=pick(['#e8c0a0','#d9a885']);return w;}
 let walkers=[newWalker(false),newWalker(false),newWalker(false),newWalker(false)],spawnT=1,balloonT=6;
+function spawnGroup(kind){
+  let a,b;
+  if(kind==='couple'){a=newWalker(true,'man');b=newWalker(true,'woman');if(Math.random()<.5)[a,b]=[b,a];}
+  else{a=newWalker(true,Math.random()<.65?'woman':'man');b=newWalker(true,'child');}
+  b.dir=a.dir;a.sp=b.sp=Math.min(a.sp,7);b.dist=a.dist;
+  b.x=a.x-a.dir*(kind==='couple'?7:6);a.y=Math.min(a.y,145);b.y=a.y+(kind==='couple'?1:2);
+  if(kind==='couple'&&a.umbItem){b.umbItem=false;}
+  a.leader=true;a.partner=b;b.partner=a;walkers.push(a,b);}
+function drawHands(c){walkers.forEach(w=>{const p=w.partner;if(!w.leader||!p||!w.hb||!p.hf)return;
+  const [x1,y1]=w.hb,[x2,y2]=p.hf,n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));
+  for(let k=1;k<n;k++)R(c,Math.round(x1+(x2-x1)*k/n),Math.round(y1+(y2-y1)*k/n),1,1,w.skin);});}
 function drawWalker(c,w){const x=Math.round(w.x),y=Math.round(w.y),d=w.dir,fr=Math.floor(w.dist/3)%2,ch=w.type==='child',wo=w.type==='woman';
   const legH=ch?3:5,torH=ch?5:7,hs=ch?3:4,tw=ch?4:6,xl=x-(tw>>1),legTop=y-legH,torTop=legTop-torH,headTop=torTop-1-hs,hx=x-(hs>>1);
   const shoe='#241b15',back=d>0?0:1;
@@ -273,8 +286,10 @@ function drawWalker(c,w){const x=Math.round(w.x),y=Math.round(w.y),d=w.dir,fr=Ma
   if(w.type==='tourist')R(c,d>0?xl-2:xl+tw,torTop+1,2,5,'#3e6b8a');
   // arms swing with the steps
   const armC=wo?w.shirt:w.shirtD,armL=torH-2,fax=d>0?xl+tw:xl-1,bax=d>0?xl-1:xl+tw;
-  if(!ch||true){R(c,bax,torTop+1,1,armL,armC);R(c,bax-(fr?0:d),torTop+1+armL,1,1,w.skin);
-    R(c,fax,torTop+1,1,armL,armC);R(c,fax+(fr?d:0),torTop+1+armL,1,1,w.skin);}
+  R(c,bax,torTop+1,1,armL,armC);R(c,bax-(fr?0:d),torTop+1+armL,1,1,w.skin);
+  R(c,fax,torTop+1,1,armL,armC);R(c,fax+(fr?d:0),torTop+1+armL,1,1,w.skin);
+  w.hb=[bax-(fr?0:d),torTop+1+armL];w.hf=[fax+(fr?d:0),torTop+1+armL];
+  if(w.cup){const cx=w.hf[0]+(d>0?0:-2),cy=w.hf[1]-2;R(c,cx,cy,3,1,'#eaa572');R(c,cx,cy+1,3,2,'#c4663a');R(c,cx+1,cy,1,1,'#4e2412');}
   // neck and head
   R(c,x-1,torTop-1,2,1,w.skin);
   R(c,hx,headTop,hs,hs,w.skin);R(c,hx,headTop,hs,1,w.hair);R(c,d>0?hx:hx+hs-1,headTop,1,hs-1,w.hair);
@@ -297,14 +312,16 @@ function drawWalker(c,w){const x=Math.round(w.x),y=Math.round(w.y),d=w.dir,fr=Ma
 
 const SPOTS=[{x:CX,y:96,w:30},{x:CX-34,y:108,w:8},{x:CX+34,y:108,w:8},{x:278,y:93,w:56},{x:35,y:34,w:56},{x:88,y:59,w:34},{x:227,y:72,w:24}];
 const pigeons=Array.from({length:10},(_,i)=>({x:i<8?190+Math.random()*70:CX-12+Math.random()*24,y:i<8?130+Math.random()*16:96,dir:Math.random()<.5?-1:1,state:i<8?'ground':'roof',ph:Math.random()*6,hop:Math.random()*3,wait:5+Math.random()*15,fl:0,vx:0,tx:0,ty:0,tKind:''}));
-function takeoff(p,toGround){p.state='fly';p.fl=0;p.vx=(Math.random()-.5)*40;
-  if(!toGround&&(wx.rain>.3||Math.random()<.45)){const s=pick(SPOTS);p.tx=s.x+(Math.random()-.5)*s.w;p.ty=s.y;p.tKind='roof';}
+let roost=false;
+function takeoff(p,toGround,forceRoof){p.state='fly';p.fl=0;p.vx=(Math.random()-.5)*40;
+  if(forceRoof||(!toGround&&(wx.rain>.3||Math.random()<.45))){const s=pick(SPOTS);p.tx=s.x+(Math.random()-.5)*s.w;p.ty=s.y;p.tKind='roof';}
   else{p.tx=Math.random()<.7?180+Math.random()*90:110+Math.random()*40;p.ty=128+Math.random()*18;p.tKind='ground';}}
 function updPigeons(dt){pigeons.forEach(p=>{
-  if(p.state==='ground'){for(const w of walkers)if(Math.abs(w.x-p.x)<9&&Math.abs(w.y-p.y)<5){takeoff(p);break;}
+  if(p.state==='ground'){if(roost){if(Math.random()<dt*.12)takeoff(p,false,true);return;}
+    for(const w of walkers)if(Math.abs(w.x-p.x)<9&&Math.abs(w.y-p.y)<5){takeoff(p);break;}
     if(p.state==='ground'){p.hop-=dt;if(p.hop<=0){p.hop=1+Math.random()*3;p.x=clamp(p.x+(Math.random()-.5)*5,4,W-4);p.y=clamp(p.y+(Math.random()-.5)*2,126,148);if(Math.random()<.3)p.dir*=-1;}
       if(Math.random()<dt*.01||(wx.rain>.4&&Math.random()<dt*.2))takeoff(p);}}
-  else if(p.state==='roof'){p.wait-=dt;if(p.wait<=0&&wx.rain<.3)takeoff(p,true);}
+  else if(p.state==='roof'){p.wait-=dt;if(p.wait<=0&&wx.rain<.3&&!roost)takeoff(p,true);}
   else{p.fl+=dt;const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
     if(p.fl<.5){p.y-=36*dt;p.x+=p.vx*dt;}
     else if(d<2){p.state=p.tKind;p.x=p.tx;p.y=p.ty;p.wait=8+Math.random()*22;}
@@ -316,13 +333,16 @@ function drawPigeon(c,p){const x=Math.round(p.x),y=Math.round(p.y),d=p.dir;
   R(c,x-1,y-2,3,2,'#7d8592');R(c,x-d*2,y-2,1,1,'#5e6672');R(c,x+d,y-3,1,1,'#4f8076');R(c,x+d*2,peck?y-1:y-3,1,1,'#55606e');R(c,x,y,1,1,'#b5504a');}
 
 const dog={x:262,y:146,dir:-1,mode:'sleep',t:18,tx:0,ty:0,dist:0,shelter:false};
-function updDog(dt){dog.t-=dt;
+const DOGX=94,DOGY=160;
+function updDog(dt){dog.t-=dt;const bed=dai.mode==='sleep';
   if(dog.mode==='walk'){const dx=dog.tx-dog.x,dy=dog.ty-dog.y,d=Math.hypot(dx,dy);
-    if(d<1){dog.mode=Math.random()<.6?'sleep':'sit';dog.t=12+Math.random()*20;}else{const s=9;dog.x+=dx/d*s*dt;dog.y+=dy/d*s*dt;dog.dist+=s*dt;dog.dir=dx>0?1:-1;}}
-  else if(dog.t<=0||(wx.rain>.4&&!dog.shelter)){
+    if(d<1){if(bed&&dog.tx===DOGX){dog.mode='sleep';dog.t=600+Math.random()*600;dog.dir=-1;}else{dog.mode=Math.random()<.6?'sleep':'sit';dog.t=12+Math.random()*20;}}else{const s=9;dog.x+=dx/d*s*dt;dog.y+=dy/d*s*dt;dog.dist+=s*dt;dog.dir=dx>0?1:-1;}}
+  else if(bed){if(Math.hypot(dog.x-DOGX,dog.y-DOGY)>1){dog.tx=DOGX;dog.ty=DOGY;dog.shelter=false;dog.mode='walk';}}
+  else if(dog.t<=0||(wx.rain>.4&&!dog.shelter&&dog.y<150)){
     if(wx.rain>.4){dog.tx=280;dog.ty=122;dog.shelter=true;}else{dog.shelter=false;dog.tx=Math.random()<.5?20+Math.random()*90:180+Math.random()*90;dog.ty=130+Math.random()*16;}
     dog.mode='walk';}}
 function drawDog(c){const x=Math.round(dog.x),y=Math.round(dog.y),d=dog.dir,fur='#b07a45',dk='#7f552e';
+  if(fest==='tihar'){const nx=dog.mode==='walk'?x+d*3:dog.mode==='sit'?x+d:x+d*2,ny=dog.mode==='walk'?y-5:dog.mode==='sit'?y-6:y-3;R(c,nx-1,ny,3,1,'#f08a2a');R(c,nx,ny+1,1,1,'#f2c230');}
   if(dog.mode==='sleep'){const br=Math.sin(T*1.5)>0?1:0;R(c,x-4,y-3-br,8,3+br,fur);R(c,x-4,y-1,8,1,dk);R(c,x+d*3-(d>0?0:1),y-3,2,2,dk);R(c,x+d*4,y-4,1,1,dk);R(c,x-d*5,y-2,2,1,fur);return;}
   if(dog.mode==='sit'){R(c,x-2,y-6,4,6,fur);R(c,x-1+d,y-9,3,3,fur);R(c,x+1+d*2,y-8,1,1,'#2a1d14');R(c,x,y-10,1,1,dk);const wag=Math.sin(T*10)>0;R(c,x-d*3,y-(wag?3:2),1,2,dk);R(c,x-1,y-1,1,1,dk);R(c,x+1,y-1,1,1,dk);return;}
   const fr=Math.floor(dog.dist/2)%2;R(c,x-3,y-5,7,3,fur);R(c,x+d*4-1,y-7,3,3,fur);R(c,x+d*5,y-6,1,1,'#2a1d14');R(c,x+d*3,y-8,1,1,dk);R(c,x-d*4,y-6,1,2,dk);
@@ -333,10 +353,35 @@ function drawCustomer(c){const x=300,y=113,sip=(T%9)<2;R(c,x-2,y,1,4,'#3b3a46');
 
 const GX=50;let radioOn=false;
 function curTempo(){return MOODS[curMood].tempo;}
-function drawGuy(c){const x=GX,b=radioOn?Math.floor(performance.now()/1000*curTempo()/60)%2:0,skin='#a86b45',skD='#8d5a3b',jk='#3d4a5c',jkD='#35404f',pant='#2f2f3a',hair='#1b1410';
-  // clay cup of tea beside him
-  R(c,x-9,155,5,1,'#eaa572');R(c,x-9,156,1,1,'#eaa572');R(c,x-5,156,1,1,'#eaa572');R(c,x-8,156,3,1,'#4e2412');
-  R(c,x-9,157,5,2,'#c4663a');R(c,x-5,157,1,2,'#8e4424');R(c,x-8,159,3,1,'#8e4424');
+/* The dai's day (Nepal time): sleeps 9:30 PM-6 AM; 10-minute breaks at 6 AM (brush), 11 AM (lunch), 4 PM,
+   coming back each time with a fresh clay cup of tea. Cups pile up through the day and sit empty overnight. */
+const BRK=[6,11,16],BL=10/60;
+let dai={mode:'sit',cups:1,fresh:false,left:0},daiPrev=null,daiRet=false,zs=[],zT=0;
+function daiPlan(h){let mode='sit';if(h>=21.5||h<6)mode='sleep';
+  const brk=BRK.find(b=>h>=b&&h<b+BL);if(brk!==undefined)mode='away';
+  const done=BRK.filter(b=>h>=b+BL),cups=h<6?3:done.length,lastRet=done.length?done[done.length-1]+BL:null;
+  return{mode,cups,fresh:lastRet!==null&&mode==='sit'&&h-lastRet<2/3,left:brk!==undefined?(brk+BL-h)*3600:0};}
+function daiWalker(dir){const w=newWalker(true,'dai');Object.assign(w,{dir,x:dir<0?GX+6:-16,y:147,sp:7,shirt:'#3d4a5c',shirtD:'#35404f',shirt2:'#3d4a5c',
+  legC:'#2f2f3a',skin:'#a86b45',hair:'#1b1410',topi:true,umbItem:true,umb:'#1d1d24',cup:dir>0,bcols:[]});return w;}
+function updDai(h,dt){const P=daiPlan(h);dai=P;
+  if(st.tm==='live'&&daiPrev&&daiPrev!=='away'&&P.mode==='away'){walkers.push(daiWalker(-1));daiRet=false;}
+  if(st.tm==='live'&&P.mode==='away'&&P.left<11&&!daiRet){daiRet=true;walkers.push(daiWalker(1));}
+  walkers=walkers.filter(w=>!(w.type==='dai'&&w.dir>0&&(w.x>=GX+6||P.mode!=='away')));
+  daiPrev=P.mode;
+  if(P.mode==='sleep'){zT-=dt;if(zT<=0){zT=2.2;zs.push({x:GX-2,y:148,t:0});}}
+  zs.forEach(z=>{z.t+=dt;z.y-=4*dt;z.x+=2*dt;});zs=zs.filter(z=>z.t<3);}
+function drawCups(c){for(let i=0;i<dai.cups;i++){const x=GX-9-i*6,full=i===0&&dai.fresh;
+  R(c,x,155,5,1,'#eaa572');R(c,x,156,1,1,'#eaa572');R(c,x+4,156,1,1,'#eaa572');R(c,x+1,156,3,1,full?'#4e2412':'#9e4f2a');
+  R(c,x,157,5,2,'#c4663a');R(c,x+4,157,1,2,'#8e4424');R(c,x+1,159,3,1,'#8e4424');}}
+function drawRadio(c){const x=GX;
+  const rx=x+20,ry=147;R(c,rx,ry,16,13,'#7a2e22');R(c,rx,ry,16,1,'#9a3e2e');R(c,rx+1,ry+12,14,1,'#5a2018');R(c,rx+15,ry+1,1,11,'#5a2018');
+  R(c,rx+3,ry-3,10,1,'#2a2a2a');R(c,rx+3,ry-2,1,2,'#2a2a2a');R(c,rx+12,ry-2,1,2,'#2a2a2a');
+  R(c,rx+1,ry+2,8,9,'#5a2018');for(let yy=ry+3;yy<ry+11;yy+=2)for(let xx=rx+2;xx<rx+9;xx+=2)R(c,xx,yy,1,1,'#2e100c');
+  R(c,rx+10,ry+2,4,3,radioOn?'#ffd27a':'#6b5a3a');R(c,rx+11+(radioOn?Math.floor(T*.3)%2:0),ry+2,1,3,'#7a2e22');
+  R(c,rx+10,ry+7,2,2,'#c9b48a');R(c,rx+13,ry+7,2,2,'#c9b48a');R(c,rx+10,ry+7,1,1,'#efe2c8');R(c,rx+13,ry+7,1,1,'#efe2c8');
+  for(let i=0;i<14;i++)R(c,rx+14+Math.floor(i*.5),ry-1-i,1,1,'#9aa0a6');R(c,rx+20,ry-15,2,2,'#cfd4d8');
+}
+function drawSitting(c){const x=GX,b=radioOn?Math.floor(performance.now()/1000*curTempo()/60)%2:0,skin='#a86b45',skD='#8d5a3b',jk='#3d4a5c',jkD='#35404f',pant='#2f2f3a',hair='#1b1410';
   // legs: thigh on the step, shin down to the next step
   R(c,x+2,154,13,5,pant);R(c,x+2,154,13,1,'#3a3a46');R(c,x+12,159,4,9,pant);R(c,x+15,159,1,9,'#26262f');
   R(c,x+11,168,7,2,'#241b15');R(c,x+17,169,1,1,'#241b15');
@@ -352,33 +397,86 @@ function drawGuy(c){const x=GX,b=radioOn?Math.floor(performance.now()/1000*curTe
   R(c,x+8,hy+5,3,1,'#2a1d14');R(c,x+5,hy+6,5,1,skD);
   R(c,x+3,hy-5,6,1,'#b8322a');R(c,x+2,hy-4,9,4,'#b8322a');R(c,x+2,hy-1,9,1,'#8e2219');
   [[3,-3,'#efe2c8'],[6,-4,'#1f4e8c'],[9,-2,'#e2b13c'],[5,-2,'#2b2b2b'],[8,-4,'#efe2c8'],[4,-5,'#e2b13c'],[7,-2,'#5fbf6a']].forEach(([dx,dy,cl])=>R(c,x+dx,hy+dy,1,1,cl));
-  // radio
-  const rx=x+20,ry=147;R(c,rx,ry,16,13,'#7a2e22');R(c,rx,ry,16,1,'#9a3e2e');R(c,rx+1,ry+12,14,1,'#5a2018');R(c,rx+15,ry+1,1,11,'#5a2018');
-  R(c,rx+3,ry-3,10,1,'#2a2a2a');R(c,rx+3,ry-2,1,2,'#2a2a2a');R(c,rx+12,ry-2,1,2,'#2a2a2a');
-  R(c,rx+1,ry+2,8,9,'#5a2018');for(let yy=ry+3;yy<ry+11;yy+=2)for(let xx=rx+2;xx<rx+9;xx+=2)R(c,xx,yy,1,1,'#2e100c');
-  R(c,rx+10,ry+2,4,3,radioOn?'#ffd27a':'#6b5a3a');R(c,rx+11+(radioOn?Math.floor(T*.3)%2:0),ry+2,1,3,'#7a2e22');
-  R(c,rx+10,ry+7,2,2,'#c9b48a');R(c,rx+13,ry+7,2,2,'#c9b48a');R(c,rx+10,ry+7,1,1,'#efe2c8');R(c,rx+13,ry+7,1,1,'#efe2c8');
-  for(let i=0;i<14;i++)R(c,rx+14+Math.floor(i*.5),ry-1-i,1,1,'#9aa0a6');R(c,rx+20,ry-15,2,2,'#cfd4d8');
   // umbrella in the rain
   if(wx.rain>.3){const ux=x+6,uy=hy-14,col='#1d1d24';R(c,ux-4,uy,9,1,col);R(c,ux-8,uy+1,17,1,col);R(c,ux-11,uy+2,23,1,col);R(c,ux-13,uy+3,27,1,col);
     R(c,ux-13,uy+4,2,1,col);R(c,ux-1,uy+4,2,1,col);R(c,ux+12,uy+4,2,1,col);R(c,ux-6,uy+1,4,1,'#3a3a46');R(c,ux,uy-1,1,1,'#888');R(c,x+3,uy+4,1,hy-uy+4,'#555');}}
+function drawSleeping(c){const x=GX,br=Math.sin(T*1.3)>0?1:0,skin='#a86b45',hair='#1b1410';
+  if(dai.mode!=='sleep')return;
+  // rain at night: a thin blue tarp on two bamboo poles over him (and the dog)
+  if(wx.rain>.3){R(c,x-10,138,1,22,'#8a6a3a');R(c,x+54,144,1,16,'#8a6a3a');
+    for(let xx=x-12;xx<=x+56;xx++){const t=(xx-(x-12))/68,yy=Math.round(137+t*6+Math.sin(t*Math.PI)*2);R(c,xx,yy,1,3,'#2f6fb0');R(c,xx,yy,1,1,'#4a8ad0');R(c,xx,yy+2,1,1,'#1f4e80');}
+    [x-12,x+20,x+56].forEach((dx,i)=>{const t=(T*1.4+i*.37)%1;R(c,dx,Math.round(141+t*16),1,1,'rgba(170,200,235,.7)');});}
+  // folded jacket as a pillow, head with topi, eyes closed
+  R(c,x-6,157,10,3,'#3d4a5c');R(c,x-6,157,10,1,'#4a586c');
+  R(c,x-4,151,7,6,skin);R(c,x-4,151,2,6,hair);R(c,x-7,151,3,6,'#b8322a');R(c,x-6,152,1,1,'#efe2c8');R(c,x-7,154,1,1,'#1f4e8c');R(c,x-5,155,1,1,'#e2b13c');
+  R(c,x-1,153,2,1,'#2a1d14');R(c,x-1,155,3,1,'#2a1d14');R(c,x+3,153,1,1,skin);
+  // striped blanket that rises and falls as he breathes
+  R(c,x+3,151-br,17,1,'#b8322a');R(c,x+2,152-br,20,8+br,'#b8322a');R(c,x+18,149-br,4,3,'#b8322a');
+  for(let xx=x+5;xx<x+21;xx+=5){R(c,xx,152-br,1,8+br,'#e2b13c');R(c,xx+1,152-br,1,8+br,'#2d6a4f');}
+  R(c,x+2,152-br,2,8+br,'#e9dcc3');R(c,x+2,159,20,1,'#7a1f18');}
+function drawGuy(c){drawCups(c);drawRadio(c);if(dai.mode==='sit')drawSitting(c);else if(dai.mode==='sleep')drawSleeping(c);}
 
 /* ---------- particles ---------- */
 let notes=[],noteT=0,steam=[],steamT=0,splashes=[];
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const drops=Array.from({length:reduce?60:150},()=>({x:Math.random()*(W+40),y:Math.random()*H,v:150+Math.random()*60,len:2+Math.random()*3|0,gy:118+Math.random()*62}));
 
+
+/* ---------- festivals: board on the left building, Dashain kites, Tihar lights ----------
+   Dates are Nepal time. Preview any time with chiyabreak.com/#dashain or /#tihar */
+const FESTS=[{name:'dashain',from:'2026-10-24',to:'2026-10-26'},{name:'tihar',from:'2026-11-07',to:'2026-11-11'}];
+let fest=null;
+function pickFest(){const hs=location.hash.slice(1).toLowerCase();if(FESTS.some(f=>f.name===hs))return hs;
+  const ds=new Date(Date.now()+5.75*3600e3).toISOString().slice(0,10),f=FESTS.find(f=>ds>=f.from&&ds<=f.to);return f?f.name:null;}
+fest=pickFest();setInterval(()=>{fest=pickFest();},30000);addEventListener('hashchange',()=>{fest=pickFest();});
+const textW=t=>[...t].reduce((a,ch)=>a+(GL[ch]?GL[ch][0].length:3)+1,0)-1;
+const BULB=['#ff4a4a','#ffd23a','#4adf6a','#4aa8ff','#ff7ad9'];
+function boardBulbs(){const pts=[];for(let x=5;x<65;x+=3){pts.push([x,41],[x,55]);}for(let y=44;y<55;y+=3){pts.push([5,y],[64,y]);}return pts;}
+const BB=boardBulbs();
+function drawBoard(c){if(!fest)return;
+  R(c,9,39,1,2,'#2a2a2a');R(c,60,39,1,2,'#2a2a2a');
+  R(c,5,41,60,15,'#3a2214');
+  if(fest==='dashain'){R(c,6,42,58,13,'#8a1f18');
+    const l1='HAPPY VIJAYA',l2='DASHAMI';ptext(c,l1,35-(textW(l1)>>1),44,'#f2c230');ptext(c,l2,35-(textW(l2)>>1),50,'#f2c230');
+    for(let x=5;x<65;x++){const y=41+Math.round(2*Math.sin(Math.PI*((x-5)%10)/10));R(c,x,y,1,1,(x>>1)%2?'#f08a2a':'#f2c230');}
+    [[4,52],[65,52]].forEach(([x,y])=>{R(c,x,y,1,4,'#8fbf3a');R(c,x-1,y+1,1,3,'#a8d84a');R(c,x+1,y+1,1,3,'#7aa830');});}
+  else{R(c,6,42,58,13,'#2a1a44');
+    const l1='HAPPY',l2='TIHAR';ptext(c,l1,35-(textW(l1)>>1),44,'#ffd27a');ptext(c,l2,35-(textW(l2)>>1),50,'#ffd27a');
+    BB.forEach(([x,y],i)=>R(c,x,y,1,1,BULB[i%BULB.length]));
+    TSTR.forEach(([x1,y1,x2,y2,sg])=>{R(c,x1,y1,1,1,'#2a2a2a');for(let x=x1;x<=x2;x+=3){const y=bulbY(x,x1,y1,x2,y2,sg);R(c,x,y,1,1,BULB[(x>>1)%BULB.length]);}});}}
+// Tihar string lights along roofs and the temple eaves: [x1,y1,x2,y2,sag]
+const TSTR=[[0,33,72,33,1],[66,67,110,67,2],[CX-44,84,CX+44,84,0],[CX-33,64,CX+33,64,0],[CX-24,48,CX+24,48,0],[210,77,244,77,1],[238,49,320,49,2]];
+const bulbY=(x,x1,y1,x2,y2,sg)=>{const t=(x-x1)/((x2-x1)||1);return Math.round(y1+(y2-y1)*t+Math.sin(t*Math.PI)*sg);};
+const DIYO=[112,126,140,154,168,182,196,210,224,238,252,266];
+function drawDiyos(c){DIYO.forEach(x=>{R(c,x-1,148,3,1,'#c4663a');R(c,x,149,1,1,'#8e4424');});}
+function festLights(L){if(fest==='dashain'){if(L>0)[[6,42],[63,42],[6,54],[63,54]].forEach(([x,y])=>{ctx.fillStyle=`rgba(255,210,120,${.9*L})`;ctx.fillRect(x,y,1,1);halo(x,y,4,.35*L);});return;}
+  if(fest!=='tihar')return;const k=.35+.65*L,step=Math.floor(T*2.5);
+  if(L>0){const c2=`rgba(255,215,130,${.75*L})`;ptext(ctx,'HAPPY',35-(textW('HAPPY')>>1),44,c2);ptext(ctx,'TIHAR',35-(textW('TIHAR')>>1),50,c2);}
+  const lit=(x,y,i,col)=>{const on=(i+step)%3!==0;if(!on)return;ctx.fillStyle=col;ctx.globalAlpha=k;ctx.fillRect(x,y,1,1);ctx.globalAlpha=.22*L;ctx.fillRect(x-1,y-1,3,3);ctx.globalAlpha=1;};
+  BB.forEach(([x,y],i)=>lit(x,y,i,BULB[i%BULB.length]));
+  TSTR.forEach(([x1,y1,x2,y2,sg])=>{for(let x=x1;x<=x2;x+=3)lit(x,bulbY(x,x1,y1,x2,y2,sg),x>>1,BULB[(x>>1)%BULB.length]);});
+  DIYO.forEach((x,i)=>{const f=.75+.25*Math.sin(T*11+i*1.7);ctx.fillStyle=`rgba(255,205,90,${f})`;ctx.fillRect(x,147,1,1);if(L>0)halo(x,147,6,.45*L*f);});}
+const KITES=[[118,24,'#e8443a','#f2c230'],[236,16,'#3aa0e8','#ffffff'],[290,36,'#5fbf6a','#e86fb4']];
+function drawKites(c){KITES.forEach(([kx,ky,a,b],i)=>{const x=Math.round(kx+Math.sin(T*.6+i*2)*3),y=Math.round(ky+Math.sin(T*1.1+i)*2);
+  c.fillStyle='rgba(235,228,214,.35)';for(let k=1;k<26;k++)c.fillRect(Math.round(x+2+k*(i===0?-1.2:1.1)),y+5+k*3,1,1);
+  R(c,x+2,y,1,1,a);R(c,x+1,y+1,1,1,a);R(c,x,y+2,2,1,a);R(c,x+1,y+3,1,1,a);R(c,x+2,y+4,1,1,b);
+  R(c,x+3,y+1,1,1,b);R(c,x+3,y+2,2,1,b);R(c,x+3,y+3,1,1,b);R(c,x+2,y+1,1,3,'#2a2a2a');
+  const tw=Math.round(Math.sin(T*4+i));R(c,x+2+tw,y+5,1,1,a);R(c,x+2,y+6,1,1,b);R(c,x+2-tw,y+7,1,1,a);});}
+
 /* ---------- loop ---------- */
 let T=0,last=performance.now(),curMood='saanjh',hudT=0;
 function update(dt,h){
-  const target=[1,1,2,3,5,6,7,7,7,7,7,7,7,7,7,7,7,7,7,6,5,4,3,2][Math.floor(h)%24];
+  const target=[1,1,1,1,1,2,4,6,7,7,7,7,7,7,7,7,7,7,6,5,3,2,1,1][Math.floor(h)%24];
+  nightNow=h>=20.5||h<6;roost=nightAmt(h)>.6;updDai(h,dt);
   const want=Math.max(1,Math.round(target*(1-.5*wx.rain)*(1-.25*wx.fog)));
-  spawnT-=dt;if(walkers.length<want&&spawnT<=0){walkers.push(newWalker(true));spawnT=1.5+Math.random()*3;}
+  spawnT-=dt;if(walkers.length<want&&spawnT<=0){const r=Math.random();
+    if(!nightNow&&r<.14)spawnGroup('couple');else if(!nightNow&&r<.25&&wx.rain<.5)spawnGroup('family');else if(nightNow&&r<.3)spawnGroup('couple');else walkers.push(newWalker(true));
+    spawnT=(nightNow?6:1.5)+Math.random()*(nightNow?10:3);}
   balloonT-=dt;if(balloonT<=0){balloonT=50+Math.random()*70;if(wx.rain<.3&&h>=7&&h<20&&!walkers.some(w=>w.type==='balloon'))walkers.push(newWalker(true,'balloon'));}
   walkers.forEach(w=>{const s=w.sp*(1+wx.rain*.45);w.x+=w.dir*s*dt;w.dist+=s*dt;});walkers=walkers.filter(w=>w.x>-22&&w.x<W+22);
   updPigeons(dt);updDog(dt);
   clouds.forEach(c=>{c.x+=c.sp*dt;if(c.x>W+10)c.x=-c.w-10;});
-  steamT-=dt;if(steamT<=0){steamT=.28;const src=pick([[257,105],[GX-7,154],[289,109],[231,100],[231,100],[230,100]]);steam.push({x:src[0],y:src[1],t:0,ph:Math.random()*6});}
+  steamT-=dt;if(steamT<=0){steamT=.28;const src=pick(dai.fresh?[[257,105],[GX-7,154],[GX-7,154],[289,109],[231,100],[231,100],[230,100]]:[[257,105],[289,109],[231,100],[231,100],[230,100]]);steam.push({x:src[0],y:src[1],t:0,ph:Math.random()*6});}
   steam.forEach(s=>{s.t+=dt;s.y-=5*dt;s.x+=Math.sin(s.t*3+s.ph)*3*dt;});steam=steam.filter(s=>s.t<2.2);
   if(radioOn){noteT-=dt;if(noteT<=0){noteT=.9+Math.random()*.7;notes.push({x:GX+34,y:144,t:0,ph:Math.random()*6});}}
   notes.forEach(n=>{n.t+=dt;n.y-=8*dt;n.x+=Math.sin(n.t*2+n.ph)*5*dt+3*dt;});notes=notes.filter(n=>n.t<3);
@@ -403,18 +501,21 @@ function render(h,night,warm){
   const ca=.22+wx.cloud*.72;ctx.fillStyle=css(cc,ca);ctx.globalAlpha=1;
   clouds.forEach(c=>{const x=Math.round(c.x),y=Math.round(c.y),w=Math.round(c.w);ctx.fillRect(x,y,w,4);ctx.fillRect(x+3,y-2,w-8,2);ctx.fillRect(x+7,y-4,Math.max(4,w-16),2);});
   if(wx.cloud>.5){ctx.fillStyle=css(cc,(wx.cloud-.5)*.8);ctx.fillRect(0,0,W,22);}
+  if(fest==='dashain'&&wx.rain<.3&&night<.5)drawKites(ctx);
 
   g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.drawImage(bgC,0,0);
   if(wx.rain>.02){g.fillStyle=`rgba(25,30,42,${.28*wx.rain})`;g.fillRect(0,118,W,32);}
   const ents=walkers.map(w=>({y:w.y,d:()=>drawWalker(g,w)}));
   pigeons.forEach(p=>{if(p.state==='ground')ents.push({y:p.y,d:()=>drawPigeon(g,p)});});
-  ents.push({y:dog.y,d:()=>drawDog(g)});
-  ents.sort((a,c)=>a.y-c.y).forEach(e=>e.d());
+  if(dog.y<=150)ents.push({y:dog.y,d:()=>drawDog(g)});
+  ents.sort((a,c)=>a.y-c.y).forEach(e=>e.d());drawHands(g);
+  drawBoard(g);
   pigeons.forEach(p=>{if(p.state==='roof')drawPigeon(g,p);});
   drawCustomer(g);
   g.drawImage(fgC,0,0);
   if(wx.rain>.02){g.fillStyle=`rgba(25,30,42,${.22*wx.rain})`;g.fillRect(0,150,W,30);}
-  drawGuy(g);
+  if(fest==='tihar')drawDiyos(g);
+  drawGuy(g);if(dog.y>150)drawDog(g);
   pigeons.forEach(p=>{if(p.state==='fly')drawPigeon(g,p);});
   steam.forEach(s=>{g.fillStyle=`rgba(236,236,236,${.45*(1-s.t/2.2)})`;g.fillRect(Math.round(s.x),Math.round(s.y),1,1);});
   g.globalCompositeOperation='source-atop';
@@ -433,6 +534,8 @@ function render(h,night,warm){
     [CX-18,CX-11,CX+11,CX+18].forEach((x,i)=>{const fl=.7+.3*Math.sin(T*9+i*2);ctx.fillStyle=`rgba(255,200,90,${.95*L*fl})`;ctx.fillRect(x,95,1,1);halo(x,95,5,.35*L*fl);});
   }
   if(radioOn){halo(GX+32,152,11,.3+.25*L);}
+  festLights(L);
+  zs.forEach(z=>{const a=(1-z.t/3)*.7,x=Math.round(z.x),y=Math.round(z.y);ctx.fillStyle=`rgba(230,235,255,${a})`;ctx.fillRect(x,y,4,1);ctx.fillRect(x+2,y+1,1,1);ctx.fillRect(x+1,y+2,1,1);ctx.fillRect(x,y+3,4,1);});
   notes.forEach(n=>{const a=(1-n.t/3)*.85,x=Math.round(n.x),y=Math.round(n.y);ctx.fillStyle=`rgba(255,226,160,${a})`;ctx.fillRect(x,y-4,1,4);ctx.fillRect(x-2,y-1,2,2);ctx.fillRect(x+1,y-4,1,1);ctx.fillRect(x+2,y-3,1,1);});
   ctx.globalCompositeOperation='source-over';
 
@@ -571,7 +674,7 @@ try{id=sessionStorage.getItem('cbid');if(!id){id=rid();sessionStorage.setItem('c
 async function ping(){try{const r=await fetch('/api/views?id='+id+(first?'&new=1':''),{cache:'no-store'});if(!r.ok)throw 0;const d=await r.json();
   if(first){first=false;try{sessionStorage.setItem('cbseen','1');}catch(e){}}
   tx.textContent=d.live+' here now · '+Number(d.total).toLocaleString('en')+' visits';el.hidden=false;}catch(e){el.hidden=true;}}
-ping();setInterval(()=>{if(!document.hidden)ping();},30000);})();
+ping();setInterval(()=>{if(!document.hidden)ping();},60000);})();
 </script>
 </body>
 </html>

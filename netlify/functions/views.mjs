@@ -14,7 +14,7 @@ export default async (req) => {
   const now = Date.now();
   const live = (await store.get("live", { type: "json" })) || {};
   if (id) live[id] = now;
-  for (const k of Object.keys(live)) if (now - live[k] > 75000) delete live[k];
+  for (const k of Object.keys(live)) if (now - live[k] > 150000) delete live[k];
   const keys = Object.keys(live);
   if (keys.length > 5000) keys.slice(0, keys.length - 5000).forEach((k) => delete live[k]);
   await store.setJSON("live", live);
