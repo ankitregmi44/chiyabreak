@@ -1,3 +1,0 @@
-# Old host (Netlify). Kept only so the site keeps working there until the move to Cloudflare is finished.
-[build]
-  publish = "public"
