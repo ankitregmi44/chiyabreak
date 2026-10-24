@@ -259,7 +259,7 @@ const WXL={clear:'Clear',cloudy:'Cloudy',rain:'Rain',fog:'Fog'};
 const wx={cloud:.1,rain:0,fog:0};
 const load=(k,d)=>{try{return localStorage.getItem(k)||d;}catch(e){return d;}},save=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
 /* radio stations: the first is played live by the browser, the other two are recorded songs */
-const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & madal',src:'/music/sarangi-madal.mp3',tempo:76},{id:'harmonium',name:'Harmonium chill',src:'/music/harmonium-chill.mp3',tempo:65}];
+const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & madal',src:'/music/sarangi-madal.mp3?v=2',tempo:60},{id:'harmonium',name:'Harmonium chill',src:'/music/harmonium-chill.mp3',tempo:65}];
 const st={wx:'auto',tm:'live',amb:'off',station:load('cb.station','flute')};
 if(!STATIONS.some(x=>x.id===st.station))st.station='flute';
 const station=()=>STATIONS.find(x=>x.id===st.station);
@@ -642,7 +642,7 @@ const mkS=()=>{const c=document.createElement('canvas');c.width=c.height=2;retur
 const [bgS,bgX]=mkS(),[fgS,fgX]=mkS(),[scS,scX]=mkS();
 let K=4,staticDirty=true;
 const STYLES=['pixel','lofi','flat'];
-let style=load('cb.style','pixel');if(!STYLES.includes(style))style='pixel';
+let style=load('cb.art','lofi');if(!STYLES.includes(style))style='lofi';
 const THEMES={lofi:{lw:.42,ink:'rgba(42,26,58,.9)',grade:.5,grain:.12,vig:.4,brick:.5,dream:.28},flat:{lw:0,ink:'',grade:0,grain:0,vig:0,brick:.28,dream:0}};
 let TH=THEMES.lofi,C=bgX;
 const TAU=Math.PI*2;
@@ -1291,8 +1291,8 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!about.hidden)closeAbout();}
 /* ---------- controls ---------- */
 function seg(id,key,opts,onPick){const el=document.getElementById(id);opts.forEach(([v,l])=>{const bt=document.createElement('button');bt.type='button';bt.id=`${id}-${v}`;bt.textContent=l;bt.setAttribute('aria-pressed',String(st[key]===v));
   bt.addEventListener('click',()=>{st[key]=v;el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===bt)));hudT=0;if(onPick)onPick(v);});el.appendChild(bt);});}
-function setStyle(v){style=v;save('cb.style',v);cv.hidden=v!=='pixel';cv2.hidden=v==='pixel';staticDirty=true;fit();}
-st.style=style;seg('sty','style',[['pixel','Pixel'],['lofi','Lofi'],['flat','Flat']],setStyle);setStyle(style);
+function setStyle(v,picked){style=v;if(picked)save('cb.art',v);cv.hidden=v!=='pixel';cv2.hidden=v==='pixel';staticDirty=true;fit();}
+st.style=style;seg('sty','style',[['pixel','Pixel'],['lofi','Lofi'],['flat','Flat']],v=>setStyle(v,true));setStyle(style);
 seg('wx','wx',[['auto','Auto'],['clear','Clear'],['cloudy','Cloudy'],['rain','Rain'],['fog','Fog']]);
 seg('tm','tm',[['live','Live'],['morning','Morning'],['day','Day'],['evening','Evening'],['night','Night']]);
 seg('amb','amb',[['off','Off'],['on','Street sounds']],v=>setAmb(v==='on'));
