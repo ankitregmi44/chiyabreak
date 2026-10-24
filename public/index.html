@@ -3,75 +3,100 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Take a tea break in Kathmandu Durbar Square: a pixel-art scene that follows Nepal time and weather, with slow Nepali-style music for relaxing and studying.">
+<meta name="description" content="Kathmandu Durbar Square in pixel art: a scene that follows Nepal time and weather, with slow Nepali-style music for relaxing and studying.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍵</text></svg>">
 <title>Chiya Break</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=Mukta:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* Layout: one framed pixel scene, with a control deck beneath it like the faceplate of an old radio */
+/* Layout: the pixel scene fills the whole window; title, counter and radio controls float over it like signs in the square */
 :root{
-  --bg:#15110e; --panel:#201a15; --line:#3b2f26; --fg:#f2e7d7; --muted:#b9a690; --accent:#e3a43a;
+  --bg:#15110e; --plate:rgba(21,17,14,.78); --line:rgba(242,231,215,.16); --fg:#f2e7d7; --muted:#c7b59f; --accent:#e3a43a;
   --display:"Pixelify Sans", ui-monospace, "Courier New", monospace;
   --body:"Mukta", "Noto Sans Devanagari", system-ui, sans-serif;
+  --pad-t:max(14px,env(safe-area-inset-top,0px)); --pad-b:max(14px,env(safe-area-inset-bottom,0px));
+  --pad-l:max(16px,env(safe-area-inset-left,0px)); --pad-r:max(16px,env(safe-area-inset-right,0px));
   color-scheme:dark;
 }
-html,body{background:var(--bg);color:var(--fg)}
-body{margin:0;font-family:var(--body);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 36px}
-.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-header{display:flex;align-items:baseline;gap:4px 14px;flex-wrap:wrap}
-h1{font-family:var(--display);font-weight:600;font-size:clamp(26px,4.4vw,36px);margin:0;letter-spacing:.02em;text-wrap:balance}
-.np{color:var(--accent);font-size:clamp(20px,3.4vw,28px);font-weight:600}
-.sub{color:var(--muted);margin:0;flex-basis:100%;max-width:65ch}
-.stage{position:relative;border:3px solid var(--line);border-radius:4px;overflow:hidden;background:#000;aspect-ratio:16/9;max-width:100%}
-canvas{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
-.hud{position:absolute;left:8px;top:8px;right:8px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;pointer-events:none}
-.hud span{font-family:var(--display);font-size:clamp(10px,1.6vw,14px);background:rgba(21,17,14,.74);padding:3px 8px;border-radius:2px;color:var(--fg)}
-.hud span[hidden]{display:none}
-.deck{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:16px 24px;align-items:center}
-@media (max-width:640px){.deck{grid-template-columns:1fr}}
-.power{font-family:var(--display);font-size:18px;background:var(--accent);color:#1d130a;border:0;border-radius:4px;padding:14px 20px;cursor:pointer;min-width:220px;max-width:100%}
-.power[aria-pressed="true"]{background:#2c241d;color:var(--fg);box-shadow:inset 0 0 0 2px var(--accent)}
-.rows{display:flex;flex-direction:column;gap:12px;min-width:0}
-.row{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
-.lbl{font-family:var(--display);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:76px}
-.seg{display:flex;flex-wrap:wrap;gap:4px}
-.seg button{font-family:var(--body);font-size:14px;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:3px;padding:3px 11px;cursor:pointer}
-.seg button:hover{border-color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-input[type=range]{accent-color:var(--accent);width:180px;max-width:100%}
-footer{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px;color:var(--muted);font-size:14px}
-.views{display:inline-flex;align-items:center;gap:8px;font-family:var(--display);font-size:13px}
-.views[hidden]{display:none}
+html,body{height:100%;background:var(--bg);color:var(--fg)}
+body{margin:0;overflow:hidden;font-family:var(--body);font-size:15px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+.scene{position:fixed;inset:0;overflow:hidden;background:var(--bg)}
+canvas{position:absolute;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.ui{transition:opacity .6s ease}
+body.idle .ui{opacity:0;pointer-events:none}
+body.idle{cursor:none}
+.plate{background:var(--plate);border:1px solid var(--line);border-radius:6px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.top{position:fixed;top:var(--pad-t);left:var(--pad-l);display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:calc(100% - var(--pad-l) - var(--pad-r) - 64px)}
+.brand{display:flex;align-items:baseline;gap:2px 10px;flex-wrap:wrap;padding:6px 12px}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(20px,2.4vw,30px);margin:0;letter-spacing:.02em;line-height:1.1}
+.np{color:var(--accent);font-size:clamp(16px,1.9vw,24px);font-weight:600;line-height:1.1}
+.hud{display:flex;flex-direction:column;align-items:flex-start;gap:4px;pointer-events:none}
+.hud span{font-family:var(--display);font-size:clamp(11px,1.1vw,14px);background:var(--plate);padding:3px 9px;border-radius:3px}
+.hud span[hidden],.views[hidden]{display:none}
+.topright{position:fixed;top:var(--pad-t);right:var(--pad-r);display:flex;align-items:center;gap:8px}
+.views{display:inline-flex;align-items:center;gap:8px;font-family:var(--display);font-size:13px;padding:6px 10px}
 .dot{width:8px;height:8px;border-radius:50%;background:#5fbf6a;animation:pulse 2s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(95,191,106,.6)}70%{box-shadow:0 0 0 6px rgba(95,191,106,0)}100%{box-shadow:0 0 0 0 rgba(95,191,106,0)}}
-@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+.icon{width:36px;height:36px;display:grid;place-items:center;color:var(--fg);cursor:pointer;font-size:18px;padding:0}
+.icon[hidden]{display:none}
+.dock{position:fixed;right:var(--pad-r);bottom:var(--pad-b);display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:calc(100% - var(--pad-l) - var(--pad-r))}
+.dockbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.power{font-family:var(--display);font-size:17px;background:var(--accent);color:#1d130a;border:0;border-radius:6px;padding:11px 18px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.power[aria-pressed="true"]{background:var(--plate);color:var(--fg);box-shadow:inset 0 0 0 2px var(--accent)}
+.ghost{font-family:var(--display);font-size:15px;color:var(--fg);padding:10px 14px;cursor:pointer}
+.ghost[aria-expanded="true"]{box-shadow:inset 0 0 0 1px var(--muted)}
+.more{padding:12px 14px;display:flex;flex-direction:column;gap:10px;max-width:100%}
+.more[hidden]{display:none}
+.row{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+.lbl{font-family:var(--display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:64px}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{font-family:var(--body);font-size:14px;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:3px;padding:2px 10px;cursor:pointer}
+.seg button:hover{border-color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--fg);color:#15110e;border-color:var(--fg)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=range]{accent-color:var(--accent);width:170px;max-width:100%}
+.copy{position:fixed;left:var(--pad-l);bottom:var(--pad-b);font-size:12px;color:var(--muted);background:var(--plate);padding:2px 8px;border-radius:3px}
+.rotate{display:none;position:fixed;left:0;right:0;text-align:center;font-size:14px;color:var(--muted);margin:0;padding:0 16px}
+body.portrait .rotate{display:block}
+body.portrait .dock{left:var(--pad-l);align-items:stretch;bottom:calc(var(--pad-b) + 30px)}
+body.portrait .copy{left:50%;transform:translateX(-50%)}
+body.portrait .power{font-size:15px}
+body.portrait .ghost{font-size:14px}
+body.portrait .dockbar{justify-content:stretch}
+body.portrait .dockbar button{flex:1}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}.ui{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Chiya Break</h1><span class="np" lang="ne">चिया ब्रेक</span>
-    <p class="sub">Take a tea break on the temple steps at Kathmandu Durbar Square. The sky follows Nepal time, and the dai on the lower step plays slow music on his radio while you relax or study.</p>
-  </header>
+<main class="scene" id="scene">
+  <canvas id="c" width="320" height="180" role="img" aria-label="Pixel art of Kathmandu Durbar Square: a pagoda temple, a clay pot shop, a momo shop, a tea café, people walking, pigeons and a street dog, seen from the temple steps where a man sits with a radio"></canvas>
+</main>
 
-  <div class="stage">
-    <canvas id="c" width="320" height="180" role="img" aria-label="Pixel art of Kathmandu Durbar Square: a pagoda temple, a clay pot shop, a tea café, people walking, pigeons and a street dog, seen from the temple steps where a man sits with a radio"></canvas>
-    <div class="hud"><span id="hud1">Kathmandu</span><span id="hud2" hidden></span></div>
-  </div>
+<header class="top ui">
+  <div class="brand plate"><h1>Chiya Break</h1><span class="np" lang="ne">चिया ब्रेक</span></div>
+  <div class="hud"><span id="hud1">Kathmandu</span><span id="hud2" hidden></span></div>
+</header>
 
-  <div class="deck">
-    <button class="power" id="power" aria-pressed="false">▶ Turn on the radio</button>
-    <div class="rows">
-      <div class="row"><span class="lbl">Weather</span><div class="seg" id="wx"></div></div>
-      <div class="row"><span class="lbl">Time</span><div class="seg" id="tm"></div></div>
-      <div class="row"><span class="lbl">Volume</span><input type="range" id="vol" min="0" max="100" value="65" aria-label="Volume"></div>
-    </div>
-  </div>
-
-  <footer><span>© 2026 AR</span><span class="views" id="views" hidden><span class="dot" aria-hidden="true"></span><span id="viewsTxt"></span></span></footer>
+<div class="topright ui">
+  <span class="views plate" id="views" hidden><span class="dot" aria-hidden="true"></span><span id="viewsTxt"></span></span>
+  <button class="icon plate" id="fs" type="button" aria-label="Full screen" title="Full screen" hidden>⛶</button>
 </div>
+
+<p class="rotate ui" id="rotate">Turn your phone sideways for the full view</p>
+
+<div class="dock ui">
+  <div class="more plate" id="more" hidden>
+    <div class="row"><span class="lbl">Weather</span><div class="seg" id="wx"></div></div>
+    <div class="row"><span class="lbl">Time</span><div class="seg" id="tm"></div></div>
+    <div class="row"><span class="lbl">Volume</span><input type="range" id="vol" min="0" max="100" value="65" aria-label="Volume"></div>
+  </div>
+  <div class="dockbar">
+    <button class="ghost plate" id="moreBtn" type="button" aria-expanded="false" aria-controls="more">Weather &amp; time</button>
+    <button class="power" id="power" type="button" aria-pressed="false">▶ Turn on the radio</button>
+  </div>
+</div>
+
+<footer class="copy ui">© 2026 AR</footer>
 
 <script>
 (()=>{
@@ -407,15 +432,58 @@ function playStep(n,t){const m=MOODS[curMood],sd=60/m.tempo/2,s8=n%8,bar=n/8|0;
     if(s8===6&&bar%2===1){melIdx=Math.random()<.5?0:5;fnote(t,melIdx,sd*3,m);}
     else if(Math.random()<p){melIdx=clamp(melIdx+pick([-2,-1,-1,0,1,1,2]),0,7);fnote(t,melIdx,sd*(1+(Math.random()*3|0)),m);}}
   if(s8===0&&bar%8===0&&Math.random()<m.bell)bell(t+sd*.5,m.root*2);}
-function tickAudio(){while(nextT<AC.currentTime+.12){playStep(stepN,nextT);nextT+=60/MOODS[curMood].tempo/2;stepN++;}
+function tickAudio(){if(AC.state!=='running')return;const ahead=document.hidden?1.6:.15;if(nextT<AC.currentTime-.3)nextT=AC.currentTime+.05;while(nextT<AC.currentTime+ahead){playStep(stepN,nextT);nextT+=60/MOODS[curMood].tempo/2;stepN++;}
   if(MOODS[curMood].birds&&Math.random()<.008)chirp(AC.currentTime+.05);}
 const pw=document.getElementById('power');
-pw.addEventListener('click',async()=>{
-  try{if(!AC)audioInit();
-    if(!radioOn){await AC.resume();setDrone();radioOn=true;nextT=AC.currentTime+.08;busy=0;sched=setInterval(tickAudio,25);}
-    else{radioOn=false;clearInterval(sched);await AC.suspend();}
-  }catch(e){radioOn=false;}
-  pw.setAttribute('aria-pressed',String(radioOn));pw.textContent=radioOn?'❚❚ Turn off the radio':'▶ Turn on the radio';hudT=0;});
+/* iPhone/iPad: Web Audio is muted by the ring/silent switch unless the page is also playing a normal media element.
+   A looping silent <audio> started inside the tap moves the page onto the media channel. */
+let silentEl=null;
+function silentWav(){const sr=8000,n=sr/2,buf=new ArrayBuffer(44+n*2),v=new DataView(buf),w=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i));};
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+  return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));}
+function unlockIOS(){
+  try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
+  try{if(!silentEl){silentEl=document.createElement('audio');silentEl.src=silentWav();silentEl.loop=true;silentEl.setAttribute('playsinline','');silentEl.preload='auto';}
+    const p=silentEl.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+function setPw(){pw.setAttribute('aria-pressed',String(radioOn));pw.textContent=radioOn?'❚❚ Turn off the radio':'▶ Turn on the radio';hudT=0;}
+pw.addEventListener('click',()=>{
+  if(!radioOn){
+    unlockIOS();                       // must run synchronously inside the tap
+    try{if(!AC)audioInit();}catch(e){setPw();return;}
+    const r=AC.resume();               // also called synchronously inside the tap
+    radioOn=true;setDrone();nextT=AC.currentTime+.08;busy=0;clearInterval(sched);sched=setInterval(tickAudio,25);setPw();
+    if(r&&r.catch)r.catch(()=>{});
+  }else{
+    radioOn=false;clearInterval(sched);try{AC.suspend();}catch(e){}if(silentEl)silentEl.pause();setPw();
+  }});
+/* resume after a phone call, notification or returning to the tab */
+function revive(){if(radioOn&&AC&&AC.state!=='running'){const r=AC.resume();if(r&&r.catch)r.catch(()=>{});if(silentEl){const p=silentEl.play();if(p&&p.catch)p.catch(()=>{});}}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)revive();});
+['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,revive,{passive:true}));
+
+
+/* ---------- fill the window ---------- */
+const rot=document.getElementById('rotate'),dock=document.querySelector('.dock'),top=document.querySelector('.top');
+function fit(){const vw=innerWidth,vh=innerHeight,a=vw/vh,s=16/9;let w,h,l,t;
+  if(a>=s){w=vw;h=vw/s;l=0;t=-(h-vh)*.7;}           // wide window: trim a little sky
+  else if(a>=1.2){h=vh;w=vh*s;t=0;l=-(w-vw)*.35;}    // squarer window: trim the sides
+  else{w=vw;h=vw/s;l=0;t=Math.max((vh-h)*.42,top.offsetHeight+24);} // phone upright: show the whole scene
+  cv.style.width=w+'px';cv.style.height=h+'px';cv.style.left=l+'px';cv.style.top=t+'px';
+  document.body.classList.toggle('portrait',a<1.2);
+  if(a<1.2)rot.style.top=(t+h+14)+'px';}
+addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));fit();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+
+/* ---------- more controls, full screen, idle fade ---------- */
+const moreBtn=document.getElementById('moreBtn'),more=document.getElementById('more');
+moreBtn.addEventListener('click',()=>{more.hidden=!more.hidden;moreBtn.setAttribute('aria-expanded',String(!more.hidden));});
+const fsBtn=document.getElementById('fs'),root=document.documentElement;
+if(root.requestFullscreen&&document.fullscreenEnabled!==false){fsBtn.hidden=false;
+  fsBtn.addEventListener('click',()=>{const p=document.fullscreenElement?document.exitFullscreen():root.requestFullscreen();if(p&&p.catch)p.catch(()=>{});});}
+let idleT=0;const canHover=matchMedia('(hover:hover) and (pointer:fine)').matches;
+function wake(){document.body.classList.remove('idle');idleT=0;}
+['pointermove','pointerdown','keydown','wheel'].forEach(ev=>addEventListener(ev,wake,{passive:true}));
+setInterval(()=>{idleT+=1;if(canHover&&radioOn&&more.hidden&&idleT>=6)document.body.classList.add('idle');},1000);
 
 /* ---------- controls ---------- */
 function seg(id,key,opts){const el=document.getElementById(id);opts.forEach(([v,l])=>{const bt=document.createElement('button');bt.type='button';bt.id=`${id}-${v}`;bt.textContent=l;bt.setAttribute('aria-pressed',String(st[key]===v));
