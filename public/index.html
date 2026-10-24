@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Chiya Break (चिया ब्रेक) is a chill pixel-art Kathmandu Durbar Square that follows Nepal time and weather. Relax or study on the temple steps with slow Nepali madal and flute music, tea, pigeons and street dogs.">
+<meta name="description" content="Chiya Break (चिया ब्रेक) is a chill pixel-art Kathmandu Durbar Square that follows Nepal time and weather. Relax or study on the temple steps with three slow Nepali radio stations (madal & flute, sarangi & madal, harmonium), tea, pigeons, street dogs and cyclists.">
 <link rel="canonical" href="https://chiyabreak.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Chiya Break">
@@ -59,6 +59,10 @@ h1{font-family:var(--display);font-weight:600;font-size:clamp(20px,2.4vw,30px);m
 .power[aria-pressed="true"]{background:var(--plate);color:var(--fg);box-shadow:inset 0 0 0 2px var(--accent)}
 .ghost{font-family:var(--display);font-size:15px;color:var(--fg);padding:10px 14px;cursor:pointer}
 .ghost[aria-expanded="true"]{box-shadow:inset 0 0 0 1px var(--muted)}
+.station{display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.st-dots{display:inline-flex;gap:3px}
+.st-dots i{width:5px;height:5px;border-radius:50%;background:var(--muted);opacity:.45}
+.st-dots i.on{background:var(--accent);opacity:1}
 .more{padding:12px 14px;display:flex;flex-direction:column;gap:10px;max-width:100%}
 .more[hidden]{display:none}
 .row{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
@@ -87,6 +91,7 @@ body.portrait .power{font-size:15px}
 body.portrait .ghost{font-size:14px}
 body.portrait .dockbar{justify-content:stretch}
 body.portrait .dockbar button{flex:1}
+body.portrait .dockbar .power{flex-basis:100%}
 @media (max-height:480px){.hud{display:none}}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}.ui{transition:none}}
 </style>
@@ -117,7 +122,8 @@ body.portrait .dockbar button{flex:1}
     <div class="row"><span class="lbl">Volume</span><input type="range" id="vol" min="0" max="100" value="65" aria-label="Volume"></div>
   </div>
   <div class="dockbar">
-    <button class="ghost plate" id="moreBtn" type="button" aria-expanded="false" aria-controls="more">Weather &amp; time</button>
+    <button class="ghost plate" id="moreBtn" type="button" aria-expanded="false" aria-controls="more">Settings</button>
+    <button class="ghost plate station" id="station" type="button"><span class="st-name">Madal &amp; flute</span><span class="st-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span></button>
     <button class="power" id="power" type="button" aria-pressed="false">▶ Turn on the radio</button>
   </div>
 </div>
@@ -176,7 +182,7 @@ function buildBG(){
   R(b,8,105,56,1,'#5a3a28');R(b,8,111,56,1,'#5a3a28');
   for(let x=9;x<62;x+=5){R(b,x,102,3,3,'#c46a3c');R(b,x,102,1,1,'#e59a62');R(b,x+1,108,3,3,'#b55e34');R(b,x+1,108,1,1,'#d98a56');}
   [10,16,23,45,52,58].forEach((x,i)=>{const s=i%2?4:5;R(b,x,118-s,s,s,'#c46a3c');R(b,x+1,117-s,s-2,1,'#9e4f2a');R(b,x,119-s,1,1,'#e59a62');});
-  winGlow.push({x:5,y:99,w:62,h:19,on:true,a:.4});
+  winGlow.push({x:5,y:99,w:62,h:19,on:true,a:.4,shop:'pot'});
   // museum (white palace wing)
   R(b,68,66,40,52,'#e4ddcf');R(b,66,63,44,3,'#bdb3a2');R(b,67,59,42,1,'#cfc6b6');for(let x=68;x<108;x+=3)R(b,x,60,1,3,'#cfc6b6');
   R(b,66,72,44,2,'#cfc6b6');
@@ -191,7 +197,7 @@ function buildBG(){
   R(b,216,109,7,2,'#efe6d6');[217,219,221].forEach(x=>R(b,x,108,1,1,'#f4ead8'));
   R(b,227,115,9,3,'#5a5a5a');R(b,228,114,7,1,'#e07a2a');
   [103,107,111].forEach(y=>{R(b,228,y,7,3,'#c3c8cc');R(b,228,y+3,7,1,'#8d9399');});R(b,229,102,5,1,'#d9dee2');R(b,231,101,1,1,'#8d9399');
-  winGlow.push({x:214,y:101,w:26,h:17,on:true,a:.5});
+  winGlow.push({x:214,y:101,w:26,h:17,on:true,a:.5,shop:'momo'});
   // café
   brickWall(b,240,48,80,70,'#953f28','#7e3420');
   R(b,238,42,82,2,'#5e3624');R(b,236,44,84,4,'#43261a');R(b,240,48,80,1,'#5a2516');
@@ -203,10 +209,9 @@ function buildBG(){
   for(let x=244;x<318;x++){const col=((x-244)>>2)%2?'#efe2c8':'#b8322a';R(b,x,94,1,5,col);if((x-244)%4<2)R(b,x,99,1,1,col);}
   R(b,246,100,68,18,'#2e1d14');R(b,244,99,2,19,'#4a2a1c');R(b,314,99,2,19,'#4a2a1c');
   R(b,250,111,26,7,'#5a3626');R(b,250,111,26,1,'#7a4a32');
-  R(b,255,107,4,4,'#9aa0a6');R(b,256,106,2,1,'#b5bcc2');R(b,259,108,2,1,'#9aa0a6');
-  [264,267,270].forEach(x=>R(b,x,109,1,2,'#d9a066'));
+  // the kettle and cups are drawn with the chiya didi (drawKeepers)
   R(b,283,112,11,1,'#6b4430');R(b,288,113,1,5,'#4a2c1a');R(b,297,113,5,1,'#6b4430');R(b,299,114,1,4,'#4a2c1a');
-  winGlow.push({x:246,y:100,w:68,h:18,on:true,a:.55});
+  winGlow.push({x:246,y:100,w:68,h:18,on:true,a:.55,shop:'chiya'});
   // lamp posts
   lamps.forEach(l=>{R(b,l.x,l.y+2,1,20,'#2a2522');R(b,l.x-1,l.y+1,3,1,'#3a3330');R(b,l.x-1,l.y,3,1,'#d8c79a');R(b,l.x-1,l.y+21,3,1,'#2a2522');});
   // pagoda temple
@@ -248,11 +253,22 @@ const clouds=Array.from({length:8},()=>({x:Math.random()*W,y:10+Math.random()*48
 const WXS={clear:{cloud:.08,rain:0,fog:0},cloudy:{cloud:.8,rain:0,fog:0},rain:{cloud:1,rain:1,fog:.12},fog:{cloud:.35,rain:0,fog:1}};
 const WXL={clear:'Clear',cloudy:'Cloudy',rain:'Rain',fog:'Fog'};
 const wx={cloud:.1,rain:0,fog:0};
-const st={wx:'auto',tm:'live',amb:'off'};
+const load=(k,d)=>{try{return localStorage.getItem(k)||d;}catch(e){return d;}},save=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+/* radio stations: the first is played live by the browser, the other two are recorded songs */
+const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & madal',src:'/music/sarangi-madal.mp3',tempo:76},{id:'harmonium',name:'Harmonium chill',src:'/music/harmonium-chill.mp3',tempo:65}];
+const st={wx:'auto',tm:'live',amb:'off',station:load('cb.station','flute')};
+if(!STATIONS.some(x=>x.id===st.station))st.station='flute';
+const station=()=>STATIONS.find(x=>x.id===st.station);
 function nepalNow(){const d=new Date(Date.now()+5.75*3600e3);return{h:d.getUTCHours()+d.getUTCMinutes()/60+d.getUTCSeconds()/3600,m:d.getUTCMonth()};}
 function hourNow(){const n=nepalNow();return{live:n.h,morning:7.2,day:13,evening:18.3,night:22.5}[st.tm];}
 function autoWx(h,m){if(m>=5&&m<=8)return(h>=14&&h<22)?'rain':'cloudy';if(m===11||m<=1)return(h>=5&&h<10.5)?'fog':'clear';if(m>=2&&m<=4)return(h>=15&&h<18.5)?'cloudy':'clear';return(h>=5&&h<8)?'fog':'clear';}
-function wxName(h){return st.wx==='auto'?autoWx(h,nepalNow().m):st.wx;}
+let liveWx=null,liveTemp=null;
+function codeWx(c){if(c===45||c===48)return'fog';if((c>=51&&c<=67)||(c>=80&&c<=82)||c>=95)return'rain';if(c===3||(c>=71&&c<=77)||c===85||c===86)return'cloudy';return'clear';}
+async function fetchWx(){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=27.7044&longitude=85.3075&current=temperature_2m,weather_code&timezone=Asia%2FKathmandu',{cache:'no-store'});
+  if(!r.ok)throw 0;const c=(await r.json()).current;if(typeof c.temperature_2m==='number')liveTemp=Math.round(c.temperature_2m);if(typeof c.weather_code==='number')liveWx=codeWx(c.weather_code);hudT=0;}catch(e){}}
+fetchWx();setInterval(fetchWx,15*60e3);
+// "Auto" weather follows the real Kathmandu weather (falls back to a seasonal guess if it can't be fetched)
+function wxName(h){if(st.wx!=='auto')return st.wx;if(st.tm==='live'&&liveWx)return liveWx;return autoWx(h,nepalNow().m);}
 const MOODS={
   bihani:{name:'Bihani',en:'morning',tempo:76,root:293.66,scale:[0,2,4,7,9],dens:.55,madal:'full',bell:.4,birds:true},
   diuso:{name:'Diuso',en:'afternoon',tempo:86,root:329.63,scale:[0,2,4,7,9],dens:.6,madal:'full',bell:.12},
@@ -273,8 +289,11 @@ function newWalker(edge,forced){const dir=Math.random()<.5?1:-1;let type=forced|
     legC:type==='woman'?'#efe2c8':type==='tourist'?'#c9b48a':pick(['#2b2b33','#3b3a46','#4a4038']),
     topi:(type==='man'&&Math.random()<.45)||type==='elder'||type==='balloon',umbItem:type!=='balloon'&&Math.random()<.8,umb:pick(UM),
     bcols:Array.from({length:7},()=>pick(BAL))};
-  if(type==='tourist')w.skin=pick(['#e8c0a0','#d9a885']);return w;}
-let walkers=[newWalker(false),newWalker(false),newWalker(false),newWalker(false)],spawnT=1,balloonT=6;
+  if(type==='tourist')w.skin=pick(['#e8c0a0','#d9a885']);
+  if(type==='cyclist'){w.sp=22+Math.random()*8;w.y=127+Math.random()*19;w.umbItem=false;w.topi=Math.random()<.35;
+    w.bike=pick(['#2a5a8a','#8a2a2a','#2b2b2b','#3e7a4e','#6b3fa0']);w.cargo=pick(['none','none','basket','gas','flask']);}
+  return w;}
+let walkers=[newWalker(false),newWalker(false),newWalker(false),newWalker(false)],spawnT=1,balloonT=6,cycT=8+Math.random()*12;
 function spawnGroup(kind){
   let a,b;
   if(kind==='couple'){a=newWalker(true,'man');b=newWalker(true,'woman');if(Math.random()<.5)[a,b]=[b,a];}
@@ -285,7 +304,7 @@ function spawnGroup(kind){
   a.leader=true;a.partner=b;b.partner=a;walkers.push(a,b);return[a,b];}
 const SEATS=[119,133,147,161,175,189,203,217,231,245,259];
 function maybeSeat(ws,h){if(wx.rain>.3)return;const day=h>=7&&h<20,eve=h>=20&&h<20.75,a=ws[0];
-  if(['balloon','dai'].includes(a.type))return;if(Math.random()>=(day?.4:eve?.1:0))return;if(!day&&ws[1]&&ws[1].type==='child')return;
+  if(['balloon','dai','cyclist'].includes(a.type))return;if(Math.random()>=(day?.4:eve?.1:0))return;if(!day&&ws[1]&&ws[1].type==='child')return;
   const spots=i=>ws.length===2?[SEATS[i],SEATS[i]-a.dir*7]:[SEATS[i]];
   const free=SEATS.map((_,i)=>i).filter(i=>spots(i).every(p=>p>=112&&p<=268&&!walkers.some(w=>w.seatX!=null&&Math.abs(w.seatX-p)<10)));
   if(!free.length)return;const i=pick(free),stay=60+Math.random()*180;
@@ -312,7 +331,32 @@ function drawSitter(c,w){const x=Math.round(w.x),y=150,d=w.dir,ch=w.type==='chil
 function drawHands(c){walkers.forEach(w=>{const p=w.partner;if(!w.leader||!p||!w.hb||!p.hf||w.state==='sit'||p.state==='sit')return;
   const [x1,y1]=w.hb,[x2,y2]=p.hf,n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));
   for(let k=1;k<n;k++)R(c,Math.round(x1+(x2-x1)*k/n),Math.round(y1+(y2-y1)*k/n),1,1,w.skin);});}
-function drawWalker(c,w){const x=Math.round(w.x),y=Math.round(w.y),d=w.dir,fr=Math.floor(w.dist/3)%2,ch=w.type==='child',wo=w.type==='woman';
+/* a cyclist pedalling across the square: spinning spokes, pedalling legs, sometimes a basket, a gas cylinder or a tea flask */
+function drawCyclist(c,w){const x=Math.round(w.x),y=Math.round(w.y),d=w.dir;
+  const P=(dx,dy,col)=>R(c,x+d*dx,y+dy,1,1,col);
+  const L=(x1,y1,x2,y2,col)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1))||1;for(let k=0;k<=n;k++)P(Math.round(x1+(x2-x1)*k/n),Math.round(y1+(y2-y1)*k/n),col);};
+  const tire='#1d1b1a',fr=w.bike,spk='#8f969c',ph=Math.floor(w.dist/1.6)%4;
+  const SPK=[[[0,-2],[0,2],[0,-1],[0,1]],[[-1,-1],[1,1],[-2,-2],[2,2]],[[-2,0],[2,0],[-1,0],[1,0]],[[-1,1],[1,-1],[-2,2],[2,-2]]][ph];
+  const RIM=[[-1,-3],[0,-3],[1,-3],[-2,-2],[2,-2],[-3,-1],[3,-1],[-3,0],[3,0],[-3,1],[3,1],[-2,2],[2,2],[-1,3],[0,3],[1,3]];
+  const wheel=cx=>{RIM.forEach(([a,b])=>P(cx+a,-4+b,tire));SPK.forEach(([a,b])=>P(cx+a,-4+b,spk));P(cx,-4,'#cfd4d8');};
+  const a=w.dist*.45,pd=[[Math.round(2*Math.cos(a)),-4+Math.round(2*Math.sin(a))],[Math.round(-2*Math.cos(a)),-4+Math.round(-2*Math.sin(a))]];
+  const leg=([px,py],col)=>{const kx=Math.round((-2+px)/2)+2,ky=Math.round((-11+py)/2)-1;L(-2,-11,kx,ky,col);L(kx,ky,px,py,col);P(px,py,'#241b15');P(px+1,py,'#241b15');};
+  leg(pd[1],shade(w.legC,.7));
+  wheel(-5);wheel(6);
+  L(-5,-4,0,-4,fr);L(-5,-4,-2,-9,fr);L(0,-4,-2,-9,fr);L(-2,-8,4,-8,fr);L(0,-4,4,-8,fr);L(4,-9,6,-4,fr);L(4,-9,4,-11,'#3a3a3a');P(3,-11,'#3a3a3a');P(2,-11,'#1d1b1a');
+  L(-3,-10,-1,-10,'#2a2a2a');
+  if(w.cargo==='basket'){L(5,-12,8,-12,'#8a5a2a');L(5,-11,8,-11,'#a8743a');L(5,-10,8,-10,'#8a5a2a');P(6,-13,'#5fbf6a');P(7,-13,'#3e8e5e');P(5,-13,'#e8443a');}
+  if(w.cargo==='gas'){L(-7,-9,-3,-9,'#3a3a3a');for(let yy=-14;yy<-9;yy++)L(-7,yy,-4,yy,'#c0392b');L(-7,-14,-4,-14,'#d9584a');P(-6,-15,'#9aa0a6');P(-5,-15,'#9aa0a6');}
+  if(w.cargo==='flask'){L(-7,-9,-3,-9,'#3a3a3a');for(let yy=-13;yy<-9;yy++)L(-6,yy,-4,yy,'#d9a63a');P(-5,-14,'#5a5a5a');}
+  // rider: torso leans forward over the handlebar
+  for(let yy=-17;yy<=-11;yy++){const o=Math.round((yy+11)*-.35);L(-3+o,yy,o,yy,w.shirt);P(-3+o,yy,w.shirtD);}
+  P(1,-18,w.skin);P(2,-18,w.skin);
+  const hx=0,ht=-22;for(let yy=0;yy<4;yy++)L(hx,ht+yy,hx+3,ht+yy,w.skin);L(hx,ht,hx+3,ht,w.hair);P(hx,ht+1,w.hair);P(hx,ht+2,w.hair);P(hx+3,ht+1,'#1a1410');
+  if(w.topi){L(hx,ht-2,hx+3,ht-2,'#b8322a');L(hx,ht-1,hx+3,ht-1,'#b8322a');P(hx+1,ht-2,'#efe2c8');P(hx+2,ht-1,'#1f4e8c');}
+  L(1,-16,3,-12,w.shirtD);P(3,-11,w.skin);
+  leg(pd[0],w.legC);
+  w.lamp=[x+d*7,y-9];}
+function drawWalker(c,w){if(w.type==='cyclist')return drawCyclist(c,w);const x=Math.round(w.x),y=Math.round(w.y),d=w.dir,fr=Math.floor(w.dist/3)%2,ch=w.type==='child',wo=w.type==='woman';
   const legH=ch?3:5,torH=ch?5:7,hs=ch?3:4,tw=ch?4:6,xl=x-(tw>>1),legTop=y-legH,torTop=legTop-torH,headTop=torTop-1-hs,hx=x-(hs>>1);
   const shoe='#241b15',back=d>0?0:1;
   // legs and shoes (two walking frames)
@@ -425,11 +469,44 @@ function drawDog(c,dg){const x=Math.round(dg.x),y=Math.round(dg.y),d=dg.dir,{fur
   if(dg.barkT>0){M(9,-8,2,1,dk);if(dg.barkT%.5>.2){M(12,-12,1,1,'rgba(240,235,225,.8)');M(13,-11,1,2,'rgba(240,235,225,.8)');}}
   if(fest==='tihar'){M(4,-9,3,1,'#f08a2a');M(5,-8,1,1,'#f2c230');}}
 
-function drawCustomer(c){const x=300,y=113,sip=(T%9)<2;R(c,x-2,y,1,4,'#3b3a46');R(c,x-1,y-6,4,6,'#2e6da4');R(c,x-1,y-9,3,3,'#a86b45');R(c,x-1,y-9,3,1,'#1b1410');R(c,x-1,y-10,3,1,'#b8322a');R(c,x-2,y-8,1,1,'#1a1410');
+/* ---------- shops: open 8 AM - 10 PM (Nepal time) with a keeper inside; shutters down and lights off at night ---------- */
+const SHOPS={pot:{x:5,y:99,w:62,h:19},momo:{x:214,y:101,w:26,h:17},chiya:{x:246,y:100,w:68,h:18}},OPEN=8,CLOSE=22;
+let shut=1;   // 0 = shutters fully up (open), 1 = fully down (closed)
+function shutterAt(h){const k=40/3600;   // in live time the shutters roll up/down over about 40 seconds
+  if(st.tm==='live'){if(h>=CLOSE&&h<CLOSE+k)return(h-CLOSE)/k;if(h>=OPEN&&h<OPEN+k)return 1-(h-OPEN)/k;}
+  return h>=OPEN&&h<CLOSE?0:1;}
+const shopOpen=()=>shut<.5;
+function drawShutter(c,s,f){const hh=Math.round(s.h*f);if(hh<=0)return;
+  R(c,s.x,s.y,s.w,hh,'#6f767b');R(c,s.x,s.y,s.w,1,'#8a9196');
+  for(let y=s.y+2;y<s.y+hh-1;y+=2)R(c,s.x,y,s.w,1,'#596065');
+  R(c,s.x,s.y+hh-1,s.w,1,'#454b50');
+  if(f>=1){const cx=s.x+(s.w>>1);R(c,cx-1,s.y+hh-3,3,2,'#c9a540');R(c,cx,s.y+hh-4,1,1,'#8a7a50');}}
+function keeperHead(c,x,y,skin,hair,longHair){R(c,x,y,4,4,skin);R(c,x,y,4,1,hair);R(c,x,y,1,3,hair);R(c,x+3,y+1,1,1,'#1a1410');if(longHair)R(c,x-1,y,1,6,hair);}
+function drawKeepers(c){
+  // momo dai folding momos behind his counter
+  const fold=Math.floor(T*2.2)%2;keeperHead(c,219,101,'#a86b45','#1b1410');R(c,219,100,4,1,'#efe6d6');
+  R(c,218,105,6,6,'#3e8e5e');R(c,219,106,4,5,'#e8e2d4');R(c,217,106,1,4,'#3e8e5e');R(c,224,106,1,3+fold,'#3e8e5e');R(c,224+fold,109+fold,1,1,'#a86b45');
+  R(c,215,111,10,1,'#7a4a32');R(c,215,112,10,6,'#5a3626');R(c,216,109,7,2,'#efe6d6');[217,219,221].forEach(x=>R(c,x,108,1,1,'#f4ead8'));
+  // chiya didi: pours tea from the kettle every few seconds
+  const pour=(T%7)<1.6;keeperHead(c,263,101,'#b97c52','#1b1410',true);R(c,262,105,6,6,'#c2185b');R(c,263,106,1,5,'#e67e22');
+  if(pour){R(c,259,106,3,1,'#c2185b');R(c,258,107,1,1,'#b97c52');}else{R(c,268,106,1,4,'#c2185b');R(c,268,110,1,1,'#b97c52');}
+  R(c,250,111,26,7,'#5a3626');R(c,250,111,26,1,'#7a4a32');
+  const ky=pour?105:107,kx=pour?256:255;R(c,kx,ky,4,4,'#9aa0a6');R(c,kx+1,ky-1,2,1,'#b5bcc2');R(c,kx+4,ky+1,2,1,'#9aa0a6');
+  if(pour)R(c,kx+5,ky+2,1,2,'#d9a066');
+  [264,267,270].forEach(x=>R(c,x,109,1,2,'#d9a066'));
+  // potter at his wheel in the clay pot shop
+  keeperHead(c,30,103,'#8d5a3b','#1b1410');R(c,30,102,4,1,'#b8322a');
+  R(c,29,107,6,6,'#d9733a');R(c,29,107,1,6,'#b05a2a');R(c,33,113,5,2,'#3b3a46');R(c,37,113,1,4,'#3b3a46');R(c,37,117,2,1,'#241b15');
+  R(c,34,109,4,1,'#d9733a');R(c,38,109,1,1,'#8d5a3b');
+  R(c,39,115,6,1,'#5a3a28');R(c,40,116,4,2,'#3a2416');
+  R(c,40,111,4,4,'#b8683c');R(c,40,111,4,1,'#d98a56');R(c,40+Math.floor(T*6)%4,112,1,2,'#e59a62');}
+function drawShops(c){if(shut<1)drawKeepers(c);Object.values(SHOPS).forEach(s=>drawShutter(c,s,shut));}
+
+function drawCustomer(c){if(!shopOpen())return;const x=300,y=113,sip=(T%9)<2;R(c,x-2,y,1,4,'#3b3a46');R(c,x-1,y-6,4,6,'#2e6da4');R(c,x-1,y-9,3,3,'#a86b45');R(c,x-1,y-9,3,1,'#1b1410');R(c,x-1,y-10,3,1,'#b8322a');R(c,x-2,y-8,1,1,'#1a1410');
   if(sip){R(c,x-2,y-7,1,3,'#2e6da4');R(c,x-3,y-8,1,2,'#d9a066');}else{R(c,x-3,y-4,2,1,'#2e6da4');R(c,x-11,y-3,1,2,'#d9a066');}}
 
 const GX=50;let radioOn=false;
-function curTempo(){return MOODS[curMood].tempo;}
+function curTempo(){const s=station();return s.tempo||MOODS[curMood].tempo;}
 /* The dai's day (Nepal time): sleeps 9:30 PM-6 AM; 10-minute breaks at 6 AM (brush), 11 AM (lunch), 4 PM,
    coming back each time with a fresh clay cup of tea. Cups pile up through the day and sit empty overnight. */
 const BRK=[6,11,16],BL=10/60;
@@ -556,12 +633,15 @@ function drawKites(c){KITES.forEach(([kx,ky,a,b],i)=>{const x=Math.round(kx+Math
 let T=0,last=performance.now(),curMood='saanjh',hudT=0;
 function update(dt,h){
   const target=[1,1,1,1,1,2,4,6,7,7,7,7,7,7,7,7,7,7,6,5,3,2,1,1][Math.floor(h)%24];
-  nightNow=h>=20.5||h<6;roost=nightAmt(h)>.6;updDai(h,dt);
+  nightNow=h>=20.5||h<6;roost=nightAmt(h)>.6;shut=shutterAt(h);updDai(h,dt);
   const want=Math.max(1,Math.round(target*(1-.5*wx.rain)*(1-.25*wx.fog)));
   spawnT-=dt;if(walkers.filter(w=>w.state!=='sit').length<want&&spawnT<=0){const r=Math.random();
     let ws;if(!nightNow&&r<.14)ws=spawnGroup('couple');else if(!nightNow&&r<.25&&wx.rain<.5)ws=spawnGroup('family');else if(nightNow&&r<.3)ws=spawnGroup('couple');else{ws=[newWalker(true)];walkers.push(ws[0]);}
     maybeSeat(ws,h);
     spawnT=(nightNow?6:1.5)+Math.random()*(nightNow?10:3);}
+  cycT-=dt;if(cycT<=0){const day=h>=6&&h<21;cycT=day?18+Math.random()*35:70+Math.random()*90;
+    if(wx.rain<.3&&walkers.filter(w=>w.type==='cyclist').length<2)walkers.push(newWalker(true,'cyclist'));}
+  walkers.forEach(w=>{if(w.type==='cyclist'&&!w.rang&&w.x>110&&w.x<210){w.rang=true;if(Math.random()<.45)bikeBell();}});
   balloonT-=dt;if(balloonT<=0){balloonT=50+Math.random()*70;if(wx.rain<.3&&h>=7&&h<20&&!walkers.some(w=>w.type==='balloon'))walkers.push(newWalker(true,'balloon'));}
   walkers.forEach(w=>{
     if(w.state==='sit'){w.sitT-=dt;if(h>=20.75&&w.sitT>4)w.sitT=4;if(wx.rain>.4&&w.sitT>1)w.sitT=.3+Math.random();if(w.sitT<=0){w.state=null;w.seatX=null;w.y=147;}return;}
@@ -569,7 +649,8 @@ function update(dt,h){
     if(w.seatX!=null){const rem=(w.seatX-w.x)*w.dir;if(rem<40)w.y+=(147-w.y)*Math.min(1,dt*1.5);if(rem<=0){w.x=w.seatX;w.state='sit';w.sitT=w.stay;}}});walkers=walkers.filter(w=>w.x>-22&&w.x<W+22);
   updPigeons(dt);updDogs(dt,h);
   clouds.forEach(c=>{c.x+=c.sp*dt;if(c.x>W+10)c.x=-c.w-10;});
-  steamT-=dt;if(steamT<=0){steamT=.28;const src=pick(dai.fresh?[[257,105],[GX-7,154],[GX-7,154],[289,109],[231,100],[231,100],[230,100]]:[[257,105],[289,109],[231,100],[231,100],[230,100]]);steam.push({x:src[0],y:src[1],t:0,ph:Math.random()*6});}
+  steamT-=dt;if(steamT<=0){steamT=.28;const srcs=(shopOpen()?[[257,105],[289,109],[231,100],[231,100],[230,100]]:[]).concat(dai.fresh?[[GX-7,154],[GX-7,154]]:[]);
+    if(srcs.length){const src=pick(srcs);steam.push({x:src[0],y:src[1],t:0,ph:Math.random()*6});}}
   steam.forEach(s=>{s.t+=dt;s.y-=5*dt;s.x+=Math.sin(s.t*3+s.ph)*3*dt;});steam=steam.filter(s=>s.t<2.2);
   if(radioOn){noteT-=dt;if(noteT<=0){noteT=.9+Math.random()*.7;notes.push({x:GX+34,y:144,t:0,ph:Math.random()*6});}}
   notes.forEach(n=>{n.t+=dt;n.y-=8*dt;n.x+=Math.sin(n.t*2+n.ph)*5*dt+3*dt;});notes=notes.filter(n=>n.t<3);
@@ -597,6 +678,7 @@ function render(h,night,warm){
   if(fest==='dashain'&&wx.rain<.3&&night<.5)drawKites(ctx);
 
   g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.drawImage(bgC,0,0);
+  drawShops(g);
   if(wx.rain>.02){g.fillStyle=`rgba(25,30,42,${.28*wx.rain})`;g.fillRect(0,118,W,32);}
   const ents=walkers.filter(w=>w.state!=='sit').map(w=>({y:w.y,d:()=>drawWalker(g,w)}));
   pigeons.forEach(p=>{if(p.state==='ground')ents.push({y:p.y,d:()=>drawPigeon(g,p)});});
@@ -622,11 +704,12 @@ function render(h,night,warm){
   const L=clamp((night-.12)/.55,0,1);
   ctx.globalCompositeOperation='lighter';
   if(L>0){
-    winGlow.forEach(w=>{if(!w.on)return;const a=w.a*L;ctx.fillStyle=`rgba(255,165,75,${a})`;ctx.fillRect(w.x,w.y,w.w,w.h);halo(w.x+w.w/2,w.y+w.h/2,Math.max(w.w,w.h)*.8+3,a*.35);});
+    winGlow.forEach(w=>{if(!w.on||(w.shop&&!shopOpen()))return;const a=w.a*L*(w.shop?.4:1);ctx.fillStyle=`rgba(255,165,75,${a})`;ctx.fillRect(w.x,w.y,w.w,w.h);halo(w.x+w.w/2,w.y+w.h/2,Math.max(w.w,w.h)*.8+3,a*.35);});
     lamps.forEach(l=>{ctx.fillStyle=`rgba(255,220,140,${.9*L})`;ctx.fillRect(l.x-1,l.y,3,1);halo(l.x,l.y+1,18,.45*L);
       if(wx.rain>.2){ctx.fillStyle=`rgba(255,200,120,${.2*L*wx.rain})`;ctx.fillRect(l.x-1,127,3,20);}});
     [CX-18,CX-11,CX+11,CX+18].forEach((x,i)=>{const fl=.7+.3*Math.sin(T*9+i*2);ctx.fillStyle=`rgba(255,200,90,${.95*L*fl})`;ctx.fillRect(x,95,1,1);halo(x,95,5,.35*L*fl);});
   }
+  if(L>0)walkers.forEach(w=>{if(w.type==='cyclist'&&w.lamp){ctx.fillStyle=`rgba(255,235,170,${.9*L})`;ctx.fillRect(w.lamp[0],w.lamp[1],1,1);halo(w.lamp[0]+w.dir*3,w.lamp[1]+2,7,.35*L);}});
   if(radioOn){halo(GX+32,152,11,.3+.25*L);}
   festLights(L);
   zs.forEach(z=>{const a=(1-z.t/3)*.7,x=Math.round(z.x),y=Math.round(z.y);ctx.fillStyle=`rgba(230,235,255,${a})`;ctx.fillRect(x,y,4,1);ctx.fillRect(x+2,y+1,1,1);ctx.fillRect(x+1,y+2,1,1);ctx.fillRect(x,y+3,4,1);});
@@ -648,8 +731,8 @@ function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;T+=dt;
   update(dt,h);render(h,night,warm);
   if(AC&&rainG)rainG.gain.setTargetAtTime(wx.rain*.16,AC.currentTime,.5);
   hudT-=dt;if(hudT<=0){hudT=.5;const M=MOODS[curMood];
-    hud1.textContent=`Kathmandu · ${fmt(h)}${st.tm==='live'?' Nepal time':' (preview)'} · ${WXL[wn]}`;
-    hud2.hidden=!radioOn;hud2.textContent='♪ Slow madal & flute';}
+    hud1.textContent=`Kathmandu · ${fmt(h)}${liveTemp!==null?` · ${liveTemp}°C`:''}${st.tm==='live'?'':' (preview)'}`;
+    hud2.hidden=!radioOn;hud2.textContent=tuning==='err'?'♪ Station not available right now':tuning?'♪ Tuning in…':`♪ ${station().name}`;}
   requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 
@@ -697,6 +780,7 @@ function burst(t,f,q,dur,peak,out){const s=AC.createBufferSource();s.buffer=nois
   gn.gain.setValueAtTime(peak,t);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(b);b.connect(gn);gn.connect(out);s.start(t,Math.random()*1.5);s.stop(t+dur+.02);}
 function ambFlap(){if(!ambOn()||AC.state!=='running')return;const now=AC.currentTime;if(now-lastFlap<.6)return;lastFlap=now;
   for(let i=0;i<6;i++)burst(now+i*.065,700+Math.random()*500,.8,.05,.03*(1-i/7),amb);}
+function bikeBell(){if(!ambOn()||AC.state!=='running')return;const t=AC.currentTime+.02;[0,.13,.26].forEach(k=>bell(t+k,1975,.3,amb));}
 function playBark(){if(!AC||AC.state!=='running')return;const t=AC.currentTime+.05;
   [0,.3].forEach(k=>{tone(t+k,'sawtooth',300,150,.17,.05,master,800);burst(t+k,650,1.2,.09,.025,master);});}
 function ambTick(){if(!ambOn()||AC.state!=='running')return;const h=hourNow(),now=AC.currentTime,nt=nightAmt(h),day=h>=6&&h<20.5;
@@ -730,6 +814,27 @@ function playStep(n,t){const m=MOODS[curMood],sd=60/m.tempo/2,s8=n%8,bar=n/8|0;
   if(s8===0&&bar%8===0&&Math.random()<m.bell)bell(t+sd*.5,m.root*2);}
 function tickAudio(){if(AC.state!=='running')return;const ahead=document.hidden?1.6:.15;if(nextT<AC.currentTime-.3)nextT=AC.currentTime+.05;while(nextT<AC.currentTime+ahead){playStep(stepN,nextT);nextT+=60/MOODS[curMood].tempo/2;stepN++;}
   if(MOODS[curMood].birds&&Math.random()<.008)chirp(AC.currentTime+.05);}
+/* recorded stations play through an <audio> element routed into the same volume control */
+let trackEl=null,fileG=null,tuning=false;
+function startStation(){const s=station();tuning=false;hudT=0;
+  if(!s.src){mus.gain.cancelScheduledValues(AC.currentTime);mus.gain.setTargetAtTime(.8,AC.currentTime,.05);nextT=AC.currentTime+.08;busy=0;clearInterval(sched);sched=setInterval(tickAudio,25);}
+  else{if(!trackEl){trackEl=new Audio();trackEl.loop=true;trackEl.preload='auto';trackEl.setAttribute('playsinline','');
+      trackEl.addEventListener('playing',()=>{tuning=false;hudT=0;});trackEl.addEventListener('waiting',()=>{tuning=true;hudT=0;});
+      trackEl.addEventListener('error',()=>{tuning='err';hudT=0;});
+      const src=AC.createMediaElementSource(trackEl);fileG=AC.createGain();fileG.gain.value=0;src.connect(fileG);fileG.connect(master);}
+    if(!trackEl.src.endsWith(s.src)){trackEl.src=s.src;tuning=true;}
+    fileG.gain.cancelScheduledValues(AC.currentTime);fileG.gain.setTargetAtTime(1,AC.currentTime,.25);
+    const p=trackEl.play();if(p&&p.catch)p.catch(()=>{tuning='err';hudT=0;});}
+  if('mediaSession' in navigator&&window.MediaMetadata){try{navigator.mediaSession.metadata=new MediaMetadata({title:s.name,artist:'Chiya Break · चिया ब्रेक',artwork:[{src:'/apple-touch-icon.png',sizes:'180x180',type:'image/png'}]});}catch(e){}}}
+function stopStation(){clearInterval(sched);if(!AC)return;mus.gain.cancelScheduledValues(AC.currentTime);mus.gain.setTargetAtTime(0,AC.currentTime,.05);
+  if(trackEl){trackEl.pause();fileG.gain.cancelScheduledValues(AC.currentTime);fileG.gain.setTargetAtTime(0,AC.currentTime,.02);}}
+const stBtn=document.getElementById('station');
+function setStationUI(){const s=station(),i=STATIONS.indexOf(s);stBtn.querySelector('.st-name').textContent=s.name;
+  stBtn.querySelectorAll('.st-dots i').forEach((d,k)=>d.classList.toggle('on',k===i));
+  stBtn.setAttribute('aria-label',`Radio station: ${s.name} (${i+1} of ${STATIONS.length}). Tap for the next station`);stBtn.title='Next station';hudT=0;}
+stBtn.addEventListener('click',()=>{const i=STATIONS.indexOf(station());st.station=STATIONS[(i+1)%STATIONS.length].id;save('cb.station',st.station);setStationUI();
+  if(radioOn){stopStation();startStation();}});
+setStationUI();
 const pw=document.getElementById('power');
 /* iPhone/iPad: Web Audio is muted by the ring/silent switch unless the page is also playing a normal media element.
    A looping silent <audio> started inside the tap moves the page onto the media channel. */
@@ -745,12 +850,13 @@ function setPw(){pw.setAttribute('aria-pressed',String(radioOn));pw.textContent=
 pw.addEventListener('click',()=>{
   if(!radioOn){
     try{startAudio();}catch(e){setPw();return;}   // runs synchronously inside the tap (needed on iPhone)
-    radioOn=true;setDrone();mus.gain.setTargetAtTime(.8,AC.currentTime,.05);nextT=AC.currentTime+.08;busy=0;clearInterval(sched);sched=setInterval(tickAudio,25);setPw();
+    radioOn=true;setDrone();startStation();setPw();
   }else{
-    radioOn=false;clearInterval(sched);mus.gain.setTargetAtTime(0,AC.currentTime,.05);setPw();stopAudioIfIdle();
+    radioOn=false;stopStation();setPw();stopAudioIfIdle();
   }});
 /* resume after a phone call, notification or returning to the tab */
-function revive(){if(audioWanted()&&AC&&AC.state!=='running'){const r=AC.resume();if(r&&r.catch)r.catch(()=>{});if(silentEl){const p=silentEl.play();if(p&&p.catch)p.catch(()=>{});}}}
+function revive(){if(audioWanted()&&AC&&AC.state!=='running'){const r=AC.resume();if(r&&r.catch)r.catch(()=>{});if(silentEl){const p=silentEl.play();if(p&&p.catch)p.catch(()=>{});}}
+  if(radioOn&&station().src&&trackEl&&trackEl.paused){const p=trackEl.play();if(p&&p.catch)p.catch(()=>{});}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)revive();});
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,revive,{passive:true}));
 
@@ -790,7 +896,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!about.hidden)closeAbout();}
 function seg(id,key,opts,onPick){const el=document.getElementById(id);opts.forEach(([v,l])=>{const bt=document.createElement('button');bt.type='button';bt.id=`${id}-${v}`;bt.textContent=l;bt.setAttribute('aria-pressed',String(st[key]===v));
   bt.addEventListener('click',()=>{st[key]=v;el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===bt)));hudT=0;if(onPick)onPick(v);});el.appendChild(bt);});}
 seg('wx','wx',[['auto','Auto'],['clear','Clear'],['cloudy','Cloudy'],['rain','Rain'],['fog','Fog']]);
-seg('tm','tm',[['live','Live (Nepal)'],['morning','Morning'],['day','Day'],['evening','Evening'],['night','Night']]);
+seg('tm','tm',[['live','Live'],['morning','Morning'],['day','Day'],['evening','Evening'],['night','Night']]);
 seg('amb','amb',[['off','Off'],['on','Street sounds']],v=>setAmb(v==='on'));
 })();
 </script>
