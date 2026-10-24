@@ -268,8 +268,34 @@ function spawnGroup(kind){
   b.dir=a.dir;a.sp=b.sp=Math.min(a.sp,7);b.dist=a.dist;
   b.x=a.x-a.dir*(kind==='couple'?7:6);a.y=Math.min(a.y,145);b.y=a.y+(kind==='couple'?1:2);
   if(kind==='couple'&&a.umbItem){b.umbItem=false;}
-  a.leader=true;a.partner=b;b.partner=a;walkers.push(a,b);}
-function drawHands(c){walkers.forEach(w=>{const p=w.partner;if(!w.leader||!p||!w.hb||!p.hf)return;
+  a.leader=true;a.partner=b;b.partner=a;walkers.push(a,b);return[a,b];}
+const SEATS=[119,133,147,161,175,189,203,217,231,245,259];
+function maybeSeat(ws,h){if(wx.rain>.3)return;const day=h>=7&&h<20,eve=h>=20&&h<20.75,a=ws[0];
+  if(['balloon','dai'].includes(a.type))return;if(Math.random()>=(day?.4:eve?.1:0))return;if(!day&&ws[1]&&ws[1].type==='child')return;
+  const spots=i=>ws.length===2?[SEATS[i],SEATS[i]-a.dir*7]:[SEATS[i]];
+  const free=SEATS.map((_,i)=>i).filter(i=>spots(i).every(p=>p>=112&&p<=268&&!walkers.some(w=>w.seatX!=null&&Math.abs(w.seatX-p)<10)));
+  if(!free.length)return;const i=pick(free),stay=60+Math.random()*180;
+  ws.forEach((w,k)=>{w.seatX=spots(i)[k];w.stay=stay;w.act=w.type==='child'?'swing':pick(['rest','rest','phone','look']);});}
+function drawSitter(c,w){const x=Math.round(w.x),y=150,d=w.dir,ch=w.type==='child',wo=w.type==='woman';
+  const M=(dx,dy,ww,hh,col)=>R(c,d>0?x+dx:x-dx-ww+1,y+dy,ww,hh,col);
+  const torH=ch?5:7,tw=ch?4:6,hs=ch?3:4,xl=-(tw>>1),thL=ch?2:4,shL=ch?3:4,knee=xl+tw-1+thL,shoe='#241b15';
+  const sw=w.act==='swing'?Math.round(Math.sin(T*3+x)):0,look=w.act==='look'&&Math.sin(T*.4+x)>.3;
+  if(w.type==='tourist')M(xl-3,-4,2,4,'#3e6b8a');
+  M(knee-1+sw,0,2,shL,w.legC);M(knee-1+sw,shL,3,1,shoe);
+  M(xl+tw-1,-2,thL+1,2,w.legC);
+  M(xl,-torH,tw,torH,w.shirt);M(xl,-torH,1,torH,w.shirtD);
+  if(wo&&!ch){M(xl+tw-1,-2,thL,1,w.shirt);for(let i=0;i<torH;i++)M(xl+tw-2-Math.floor(i*(tw-2)/torH),-torH+i,2,1,w.shirt2);}
+  else if(!ch)M(xl,-1,tw,1,w.shirtD);
+  const armC=wo?w.shirt:w.shirtD;M(xl+tw-2,-torH+1,1,torH-3,armC);
+  if(w.act==='phone'){M(xl+tw-1,-torH+3,2,1,armC);M(xl+tw+1,-torH+2,1,1,w.skin);M(xl+tw+1,-torH+1,1,2,'#9fd8ff');}
+  else{M(xl+tw-1,-3,thL-1,1,armC);M(knee-1,-3,1,1,w.skin);}
+  M(-1,-torH-1,2,1,w.skin);
+  const ht=-torH-1-hs,hx=-(hs>>1);M(hx,ht,hs,hs,w.skin);M(hx,ht,hs,1,w.hair);
+  if(look){M(hx+hs-1,ht,1,hs-1,w.hair);M(hx,ht+1,1,1,'#1a1410');}else{M(hx,ht,1,hs-1,w.hair);M(hx+hs-1,ht+1+(w.act==='phone'?1:0),1,1,'#1a1410');}
+  if(wo)M(look?hx+hs:hx-1,ht,1,hs+3,w.hair);
+  if(w.topi){M(hx,ht-2,hs,2,'#b8322a');M(hx+1,ht-2,1,1,'#efe2c8');M(hx+2,ht-1,1,1,'#1f4e8c');}
+  if(w.type==='tourist'){M(hx-1,ht-1,hs+2,1,'#d9c79a');M(hx,ht-2,hs,1,'#d9c79a');}}
+function drawHands(c){walkers.forEach(w=>{const p=w.partner;if(!w.leader||!p||!w.hb||!p.hf||w.state==='sit'||p.state==='sit')return;
   const [x1,y1]=w.hb,[x2,y2]=p.hf,n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));
   for(let k=1;k<n;k++)R(c,Math.round(x1+(x2-x1)*k/n),Math.round(y1+(y2-y1)*k/n),1,1,w.skin);});}
 function drawWalker(c,w){const x=Math.round(w.x),y=Math.round(w.y),d=w.dir,fr=Math.floor(w.dist/3)%2,ch=w.type==='child',wo=w.type==='woman';
@@ -332,21 +358,36 @@ function drawPigeon(c,p){const x=Math.round(p.x),y=Math.round(p.y),d=p.dir;
   const peck=p.state==='ground'&&Math.sin(T*5+p.ph)>.7;
   R(c,x-1,y-2,3,2,'#7d8592');R(c,x-d*2,y-2,1,1,'#5e6672');R(c,x+d,y-3,1,1,'#4f8076');R(c,x+d*2,peck?y-1:y-3,1,1,'#55606e');R(c,x,y,1,1,'#b5504a');}
 
-const dog={x:262,y:146,dir:-1,mode:'sleep',t:18,tx:0,ty:0,dist:0,shelter:false};
-const DOGX=94,DOGY=160;
-function updDog(dt){dog.t-=dt;const bed=dai.mode==='sleep';
-  if(dog.mode==='walk'){const dx=dog.tx-dog.x,dy=dog.ty-dog.y,d=Math.hypot(dx,dy);
-    if(d<1){if(bed&&dog.tx===DOGX){dog.mode='sleep';dog.t=600+Math.random()*600;dog.dir=-1;}else{dog.mode=Math.random()<.6?'sleep':'sit';dog.t=12+Math.random()*20;}}else{const s=9;dog.x+=dx/d*s*dt;dog.y+=dy/d*s*dt;dog.dist+=s*dt;dog.dir=dx>0?1:-1;}}
-  else if(bed){if(Math.hypot(dog.x-DOGX,dog.y-DOGY)>1){dog.tx=DOGX;dog.ty=DOGY;dog.shelter=false;dog.mode='walk';}}
-  else if(dog.t<=0||(wx.rain>.4&&!dog.shelter&&dog.y<150)){
-    if(wx.rain>.4){dog.tx=280;dog.ty=122;dog.shelter=true;}else{dog.shelter=false;dog.tx=Math.random()<.5?20+Math.random()*90:180+Math.random()*90;dog.ty=130+Math.random()*16;}
-    dog.mode='walk';}}
-function drawDog(c){const x=Math.round(dog.x),y=Math.round(dog.y),d=dog.dir,fur='#b07a45',dk='#7f552e';
-  if(fest==='tihar'){const nx=dog.mode==='walk'?x+d*3:dog.mode==='sit'?x+d:x+d*2,ny=dog.mode==='walk'?y-5:dog.mode==='sit'?y-6:y-3;R(c,nx-1,ny,3,1,'#f08a2a');R(c,nx,ny+1,1,1,'#f2c230');}
-  if(dog.mode==='sleep'){const br=Math.sin(T*1.5)>0?1:0;R(c,x-4,y-3-br,8,3+br,fur);R(c,x-4,y-1,8,1,dk);R(c,x+d*3-(d>0?0:1),y-3,2,2,dk);R(c,x+d*4,y-4,1,1,dk);R(c,x-d*5,y-2,2,1,fur);return;}
-  if(dog.mode==='sit'){R(c,x-2,y-6,4,6,fur);R(c,x-1+d,y-9,3,3,fur);R(c,x+1+d*2,y-8,1,1,'#2a1d14');R(c,x,y-10,1,1,dk);const wag=Math.sin(T*10)>0;R(c,x-d*3,y-(wag?3:2),1,2,dk);R(c,x-1,y-1,1,1,dk);R(c,x+1,y-1,1,1,dk);return;}
-  const fr=Math.floor(dog.dist/2)%2;R(c,x-3,y-5,7,3,fur);R(c,x+d*4-1,y-7,3,3,fur);R(c,x+d*5,y-6,1,1,'#2a1d14');R(c,x+d*3,y-8,1,1,dk);R(c,x-d*4,y-6,1,2,dk);
-  if(fr){R(c,x-3,y-2,1,2,dk);R(c,x+2,y-2,1,2,dk);}else{R(c,x-2,y-2,1,2,dk);R(c,x+3,y-2,1,2,dk);}}
+const dogs=[
+  {x:262,y:146,dir:-1,mode:'sleep',t:18,tx:0,ty:0,dist:0,shelter:false,bx:93,bdir:1,sx:282,fur:'#b07a45',dk:'#7f552e',lt:'#d6a46e',eye:'#2a1d14'},
+  {x:140,y:138,dir:1,mode:'sit',t:9,tx:0,ty:0,dist:0,shelter:false,bx:106,bdir:-1,sx:268,fur:'#2e2924',dk:'#171310',lt:'#9a7650',eye:'#e8dcc8'}];
+const DOGY=160;
+function updDogs(dt){const bed=dai.mode==='sleep';dogs.forEach(dg=>{dg.t-=dt;
+  if(dg.mode==='walk'){const dx=dg.tx-dg.x,dy=dg.ty-dg.y,d=Math.hypot(dx,dy);
+    if(d<1){if(bed&&dg.tx===dg.bx&&dg.ty===DOGY){dg.mode='sleep';dg.t=600+Math.random()*600;dg.dir=dg.bdir;}else{dg.mode=Math.random()<.55?'sleep':'sit';dg.t=12+Math.random()*25;}}
+    else{const sp=10;dg.x+=dx/d*sp*dt;dg.y+=dy/d*sp*dt;dg.dist+=sp*dt;dg.dir=dx>0?1:-1;}}
+  else if(bed){if(Math.hypot(dg.x-dg.bx,dg.y-DOGY)>1){dg.tx=dg.bx;dg.ty=DOGY;dg.shelter=false;dg.mode='walk';}}
+  else if(dg.t<=0||(wx.rain>.4&&!dg.shelter&&dg.y<150)){
+    if(wx.rain>.4){dg.tx=dg.sx;dg.ty=122;dg.shelter=true;}else{dg.shelter=false;dg.tx=Math.random()<.5?20+Math.random()*90:150+Math.random()*120;dg.ty=130+Math.random()*16;}
+    dg.mode='walk';}});}
+function drawDog(c,dg){const x=Math.round(dg.x),y=Math.round(dg.y),d=dg.dir,{fur,dk,lt,eye}=dg,nose='#111';
+  const M=(dx,dy,w,h,col)=>R(c,d>0?x+dx:x-dx-w+1,y+dy,w,h,col);
+  const wag=Math.sin(T*(dg.mode==='sleep'?0:10))>0?1:0;
+  if(dg.mode==='sleep'){const br=Math.sin(T*1.5+x)>0?1:0;
+    M(-5,-5-br,10,1,fur);M(-6,-4-br,12,3+br,fur);M(-6,-1,12,1,dk);M(-6,-3,1,2,lt);
+    M(4,-5,4,3,fur);M(5,-6,2,1,dk);M(8,-4,1,2,lt);M(8,-4,1,1,nose);M(6,-4,1,1,dk);
+    if(fest==='tihar'){M(3,-4,1,3,'#f08a2a');M(3,-2,1,1,'#f2c230');}return;}
+  if(dg.mode==='sit'){
+    M(-4,-6,6,6,fur);M(-4,-1,6,1,dk);M(1,-10,4,9,fur);M(1,-6,1,5,lt);M(2,-4,1,4,dk);M(4,-4,1,4,fur);M(4,0,2,1,dk);
+    M(2,-14,5,4,fur);M(6,-12,2,2,lt);M(7,-12,1,1,nose);M(4,-13,1,1,eye);M(2,-15,2,2,dk);M(5,-15,1,1,dk);
+    M(-6,-1-wag,3,1,fur);
+    if(fest==='tihar'){M(1,-10,4,1,'#f08a2a');M(3,-9,1,1,'#f2c230');}return;}
+  const fr=Math.floor(dg.dist/2.5)%2;
+  M(-6,-8,11,4,fur);M(-5,-5,9,1,lt);M(-6,-8,11,1,dk);
+  if(fr){M(-5,-4,2,4,fur);M(-3,-4,1,4,dk);M(2,-4,2,4,fur);M(4,-4,1,4,dk);}else{M(-6,-4,2,4,fur);M(-2,-4,1,4,dk);M(3,-4,2,4,fur);M(1,-4,1,4,dk);}
+  M(4,-11,3,4,fur);M(5,-12,5,4,fur);M(9,-10,2,2,lt);M(10,-10,1,1,nose);M(7,-11,1,1,eye);M(5,-13,2,2,dk);
+  M(-7-wag,-11,1,3,fur);M(-8-wag,-12,2,1,fur);
+  if(fest==='tihar'){M(4,-9,3,1,'#f08a2a');M(5,-8,1,1,'#f2c230');}}
 
 function drawCustomer(c){const x=300,y=113,sip=(T%9)<2;R(c,x-2,y,1,4,'#3b3a46');R(c,x-1,y-6,4,6,'#2e6da4');R(c,x-1,y-9,3,3,'#a86b45');R(c,x-1,y-9,3,1,'#1b1410');R(c,x-1,y-10,3,1,'#b8322a');R(c,x-2,y-8,1,1,'#1a1410');
   if(sip){R(c,x-2,y-7,1,3,'#2e6da4');R(c,x-3,y-8,1,2,'#d9a066');}else{R(c,x-3,y-4,2,1,'#2e6da4');R(c,x-11,y-3,1,2,'#d9a066');}}
@@ -360,7 +401,7 @@ let dai={mode:'sit',cups:1,fresh:false,left:0},daiPrev=null,daiRet=false,zs=[],z
 function daiPlan(h){let mode='sit';if(h>=21.5||h<6)mode='sleep';
   const brk=BRK.find(b=>h>=b&&h<b+BL);if(brk!==undefined)mode='away';
   const done=BRK.filter(b=>h>=b+BL),cups=h<6?3:done.length,lastRet=done.length?done[done.length-1]+BL:null;
-  return{mode,cups,fresh:lastRet!==null&&mode==='sit'&&h-lastRet<2/3,left:brk!==undefined?(brk+BL-h)*3600:0};}
+  return{mode,cups,fresh:lastRet!==null&&mode==='sit'&&h-lastRet<2/3,left:brk!==undefined?(brk+BL-h)*3600:0,read:h<11?'paper':'book'};}
 function daiWalker(dir){const w=newWalker(true,'dai');Object.assign(w,{dir,x:dir<0?GX+6:-16,y:147,sp:7,shirt:'#3d4a5c',shirtD:'#35404f',shirt2:'#3d4a5c',
   legC:'#2f2f3a',skin:'#a86b45',hair:'#1b1410',topi:true,umbItem:true,umb:'#1d1d24',cup:dir>0,bcols:[]});return w;}
 function updDai(h,dt){const P=daiPlan(h);dai=P;
@@ -370,7 +411,8 @@ function updDai(h,dt){const P=daiPlan(h);dai=P;
   daiPrev=P.mode;
   if(P.mode==='sleep'){zT-=dt;if(zT<=0){zT=2.2;zs.push({x:GX-2,y:148,t:0});}}
   zs.forEach(z=>{z.t+=dt;z.y-=4*dt;z.x+=2*dt;});zs=zs.filter(z=>z.t<3);}
-function drawCups(c){for(let i=0;i<dai.cups;i++){const x=GX-9-i*6,full=i===0&&dai.fresh;
+let daiSip=false;
+function drawCups(c){for(let i=0;i<dai.cups;i++){if(i===0&&daiSip)continue;const x=GX-9-i*6,full=i===0&&dai.fresh;
   R(c,x,155,5,1,'#eaa572');R(c,x,156,1,1,'#eaa572');R(c,x+4,156,1,1,'#eaa572');R(c,x+1,156,3,1,full?'#4e2412':'#9e4f2a');
   R(c,x,157,5,2,'#c4663a');R(c,x+4,157,1,2,'#8e4424');R(c,x+1,159,3,1,'#8e4424');}}
 function drawRadio(c){const x=GX;
@@ -381,19 +423,30 @@ function drawRadio(c){const x=GX;
   R(c,rx+10,ry+7,2,2,'#c9b48a');R(c,rx+13,ry+7,2,2,'#c9b48a');R(c,rx+10,ry+7,1,1,'#efe2c8');R(c,rx+13,ry+7,1,1,'#efe2c8');
   for(let i=0;i<14;i++)R(c,rx+14+Math.floor(i*.5),ry-1-i,1,1,'#9aa0a6');R(c,rx+20,ry-15,2,2,'#cfd4d8');
 }
-function drawSitting(c){const x=GX,b=radioOn?Math.floor(performance.now()/1000*curTempo()/60)%2:0,skin='#a86b45',skD='#8d5a3b',jk='#3d4a5c',jkD='#35404f',pant='#2f2f3a',hair='#1b1410';
+function drawSitting(c){const x=GX,b=radioOn&&!daiSip?Math.floor(performance.now()/1000*curTempo()/60)%2:0,hy=131+b,skin='#a86b45',skD='#8d5a3b',jk='#3d4a5c',jkD='#35404f',pant='#2f2f3a',hair='#1b1410';
   // legs: thigh on the step, shin down to the next step
   R(c,x+2,154,13,5,pant);R(c,x+2,154,13,1,'#3a3a46');R(c,x+12,159,4,9,pant);R(c,x+15,159,1,9,'#26262f');
   R(c,x+11,168,7,2,'#241b15');R(c,x+17,169,1,1,'#241b15');
   // body
   R(c,x+1,140,10,1,jk);R(c,x,141,12,14,jk);R(c,x,141,2,14,jkD);
   R(c,x+8,140,3,1,'#e9dcc3');R(c,x+9,141,2,3,'#e9dcc3');R(c,x+8,141,1,8,'#2c3746');R(c,x+3,149,3,1,'#2c3746');
-  // arm resting towards the radio
-  R(c,x+6,142,3,8,jkD);R(c,x+8,149,10,3,jk);R(c,x+8,151,10,1,jkD);R(c,x+18,149,2,3,skin);
+  // reading: newspaper in the morning, a book later; lowers it to sip fresh tea
+  const sip=daiSip;R(c,x+6,142,3,7,jkD);
+  if(dai.read==='paper'){const py=sip?147:139;
+    R(c,x+9,py,12,11,'#e8e4da');R(c,x+9,py,12,1,'#cfc9bd');R(c,x+14,py,1,11,'#c2bcb0');
+    R(c,x+10,py+2,4,1,'#3a3a3a');R(c,x+16,py+2,4,1,'#3a3a3a');
+    for(let yy=py+4;yy<py+10;yy+=2){R(c,x+10,yy,4,1,'#a19b90');if(yy>py+6)R(c,x+16,yy,4,1,'#a19b90');}
+    R(c,x+16,py+4,4,3,'#8d9aa6');R(c,x+8,py+5,1,Math.max(1,149-py-5),jk);R(c,x+8,py+4,2,2,skin);}
+  else{const by=sip?150:145;
+    R(c,x+11,by,10,5,'#2d6a4f');R(c,x+12,by-1,3,5,'#f2ead8');R(c,x+16,by-1,3,5,'#f2ead8');R(c,x+15,by-1,1,5,'#b8ad98');
+    [0,2].forEach(o=>{R(c,x+12,by+o,3,1,'#c9bfa8');R(c,x+16,by+o,3,1,'#c9bfa8');});
+    if(!sip&&(T%9)<.5)R(c,x+15,by-3,2,3,'#f2ead8');
+    R(c,x+8,149,3,2,jk);R(c,x+10,by+1,2,2,skin);}
+  if(sip){R(c,x+8,hy+7,2,10,jk);R(c,x+9,hy+5,2,2,skin);R(c,x+10,hy+3,3,1,'#eaa572');R(c,x+10,hy+4,3,2,'#c4663a');}
   // neck, head and dhaka topi (nods to the beat)
   R(c,x+5,138,4,2,skD);
-  const hy=131+b;R(c,x+2,hy,9,7,skin);R(c,x+2,hy,4,6,hair);R(c,x+2,hy+6,2,1,hair);R(c,x+6,hy,5,1,hair);
-  R(c,x+5,hy+2,1,2,skD);R(c,x+9,hy+2,1,1,'#1a1410');R(c,x+8,hy+1,2,1,'#2a1d14');R(c,x+11,hy+3,1,1,skin);
+  R(c,x+2,hy,9,7,skin);R(c,x+2,hy,4,6,hair);R(c,x+2,hy+6,2,1,hair);R(c,x+6,hy,5,1,hair);
+  R(c,x+5,hy+2,1,2,skD);R(c,x+9,hy+2+(daiSip?0:1),1,1,'#1a1410');R(c,x+8,hy+1,2,1,'#2a1d14');R(c,x+11,hy+3,1,1,skin);
   R(c,x+8,hy+5,3,1,'#2a1d14');R(c,x+5,hy+6,5,1,skD);
   R(c,x+3,hy-5,6,1,'#b8322a');R(c,x+2,hy-4,9,4,'#b8322a');R(c,x+2,hy-1,9,1,'#8e2219');
   [[3,-3,'#efe2c8'],[6,-4,'#1f4e8c'],[9,-2,'#e2b13c'],[5,-2,'#2b2b2b'],[8,-4,'#efe2c8'],[4,-5,'#e2b13c'],[7,-2,'#5fbf6a']].forEach(([dx,dy,cl])=>R(c,x+dx,hy+dy,1,1,cl));
@@ -403,9 +456,9 @@ function drawSitting(c){const x=GX,b=radioOn?Math.floor(performance.now()/1000*c
 function drawSleeping(c){const x=GX,br=Math.sin(T*1.3)>0?1:0,skin='#a86b45',hair='#1b1410';
   if(dai.mode!=='sleep')return;
   // rain at night: a thin blue tarp on two bamboo poles over him (and the dog)
-  if(wx.rain>.3){R(c,x-10,138,1,22,'#8a6a3a');R(c,x+54,144,1,16,'#8a6a3a');
-    for(let xx=x-12;xx<=x+56;xx++){const t=(xx-(x-12))/68,yy=Math.round(137+t*6+Math.sin(t*Math.PI)*2);R(c,xx,yy,1,3,'#2f6fb0');R(c,xx,yy,1,1,'#4a8ad0');R(c,xx,yy+2,1,1,'#1f4e80');}
-    [x-12,x+20,x+56].forEach((dx,i)=>{const t=(T*1.4+i*.37)%1;R(c,dx,Math.round(141+t*16),1,1,'rgba(170,200,235,.7)');});}
+  if(wx.rain>.3){R(c,x-10,138,1,22,'#8a6a3a');R(c,x+64,145,1,15,'#8a6a3a');
+    for(let xx=x-12;xx<=x+66;xx++){const t=(xx-(x-12))/78,yy=Math.round(137+t*6+Math.sin(t*Math.PI)*2);R(c,xx,yy,1,3,'#2f6fb0');R(c,xx,yy,1,1,'#4a8ad0');R(c,xx,yy+2,1,1,'#1f4e80');}
+    [x-12,x+24,x+66].forEach((dx,i)=>{const t=(T*1.4+i*.37)%1;R(c,dx,Math.round(141+t*16),1,1,'rgba(170,200,235,.7)');});}
   // folded jacket as a pillow, head with topi, eyes closed
   R(c,x-6,157,10,3,'#3d4a5c');R(c,x-6,157,10,1,'#4a586c');
   R(c,x-4,151,7,6,skin);R(c,x-4,151,2,6,hair);R(c,x-7,151,3,6,'#b8322a');R(c,x-6,152,1,1,'#efe2c8');R(c,x-7,154,1,1,'#1f4e8c');R(c,x-5,155,1,1,'#e2b13c');
@@ -414,7 +467,7 @@ function drawSleeping(c){const x=GX,br=Math.sin(T*1.3)>0?1:0,skin='#a86b45',hair
   R(c,x+3,151-br,17,1,'#b8322a');R(c,x+2,152-br,20,8+br,'#b8322a');R(c,x+18,149-br,4,3,'#b8322a');
   for(let xx=x+5;xx<x+21;xx+=5){R(c,xx,152-br,1,8+br,'#e2b13c');R(c,xx+1,152-br,1,8+br,'#2d6a4f');}
   R(c,x+2,152-br,2,8+br,'#e9dcc3');R(c,x+2,159,20,1,'#7a1f18');}
-function drawGuy(c){drawCups(c);drawRadio(c);if(dai.mode==='sit')drawSitting(c);else if(dai.mode==='sleep')drawSleeping(c);}
+function drawGuy(c){daiSip=dai.mode==='sit'&&dai.fresh&&(T%12)<2.6;drawCups(c);drawRadio(c);if(dai.mode==='sit')drawSitting(c);else if(dai.mode==='sleep')drawSleeping(c);}
 
 /* ---------- particles ---------- */
 let notes=[],noteT=0,steam=[],steamT=0,splashes=[];
@@ -469,12 +522,16 @@ function update(dt,h){
   const target=[1,1,1,1,1,2,4,6,7,7,7,7,7,7,7,7,7,7,6,5,3,2,1,1][Math.floor(h)%24];
   nightNow=h>=20.5||h<6;roost=nightAmt(h)>.6;updDai(h,dt);
   const want=Math.max(1,Math.round(target*(1-.5*wx.rain)*(1-.25*wx.fog)));
-  spawnT-=dt;if(walkers.length<want&&spawnT<=0){const r=Math.random();
-    if(!nightNow&&r<.14)spawnGroup('couple');else if(!nightNow&&r<.25&&wx.rain<.5)spawnGroup('family');else if(nightNow&&r<.3)spawnGroup('couple');else walkers.push(newWalker(true));
+  spawnT-=dt;if(walkers.filter(w=>w.state!=='sit').length<want&&spawnT<=0){const r=Math.random();
+    let ws;if(!nightNow&&r<.14)ws=spawnGroup('couple');else if(!nightNow&&r<.25&&wx.rain<.5)ws=spawnGroup('family');else if(nightNow&&r<.3)ws=spawnGroup('couple');else{ws=[newWalker(true)];walkers.push(ws[0]);}
+    maybeSeat(ws,h);
     spawnT=(nightNow?6:1.5)+Math.random()*(nightNow?10:3);}
   balloonT-=dt;if(balloonT<=0){balloonT=50+Math.random()*70;if(wx.rain<.3&&h>=7&&h<20&&!walkers.some(w=>w.type==='balloon'))walkers.push(newWalker(true,'balloon'));}
-  walkers.forEach(w=>{const s=w.sp*(1+wx.rain*.45);w.x+=w.dir*s*dt;w.dist+=s*dt;});walkers=walkers.filter(w=>w.x>-22&&w.x<W+22);
-  updPigeons(dt);updDog(dt);
+  walkers.forEach(w=>{
+    if(w.state==='sit'){w.sitT-=dt;if(h>=20.75&&w.sitT>4)w.sitT=4;if(wx.rain>.4&&w.sitT>1)w.sitT=.3+Math.random();if(w.sitT<=0){w.state=null;w.seatX=null;w.y=147;}return;}
+    const s=w.sp*(1+wx.rain*.45);w.x+=w.dir*s*dt;w.dist+=s*dt;
+    if(w.seatX!=null){const rem=(w.seatX-w.x)*w.dir;if(rem<40)w.y+=(147-w.y)*Math.min(1,dt*1.5);if(rem<=0){w.x=w.seatX;w.state='sit';w.sitT=w.stay;}}});walkers=walkers.filter(w=>w.x>-22&&w.x<W+22);
+  updPigeons(dt);updDogs(dt);
   clouds.forEach(c=>{c.x+=c.sp*dt;if(c.x>W+10)c.x=-c.w-10;});
   steamT-=dt;if(steamT<=0){steamT=.28;const src=pick(dai.fresh?[[257,105],[GX-7,154],[GX-7,154],[289,109],[231,100],[231,100],[230,100]]:[[257,105],[289,109],[231,100],[231,100],[230,100]]);steam.push({x:src[0],y:src[1],t:0,ph:Math.random()*6});}
   steam.forEach(s=>{s.t+=dt;s.y-=5*dt;s.x+=Math.sin(s.t*3+s.ph)*3*dt;});steam=steam.filter(s=>s.t<2.2);
@@ -505,9 +562,9 @@ function render(h,night,warm){
 
   g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.drawImage(bgC,0,0);
   if(wx.rain>.02){g.fillStyle=`rgba(25,30,42,${.28*wx.rain})`;g.fillRect(0,118,W,32);}
-  const ents=walkers.map(w=>({y:w.y,d:()=>drawWalker(g,w)}));
+  const ents=walkers.filter(w=>w.state!=='sit').map(w=>({y:w.y,d:()=>drawWalker(g,w)}));
   pigeons.forEach(p=>{if(p.state==='ground')ents.push({y:p.y,d:()=>drawPigeon(g,p)});});
-  if(dog.y<=150)ents.push({y:dog.y,d:()=>drawDog(g)});
+  dogs.forEach(dg=>{if(dg.y<=150)ents.push({y:dg.y,d:()=>drawDog(g,dg)});});
   ents.sort((a,c)=>a.y-c.y).forEach(e=>e.d());drawHands(g);
   drawBoard(g);
   pigeons.forEach(p=>{if(p.state==='roof')drawPigeon(g,p);});
@@ -515,7 +572,8 @@ function render(h,night,warm){
   g.drawImage(fgC,0,0);
   if(wx.rain>.02){g.fillStyle=`rgba(25,30,42,${.22*wx.rain})`;g.fillRect(0,150,W,30);}
   if(fest==='tihar')drawDiyos(g);
-  drawGuy(g);if(dog.y>150)drawDog(g);
+  walkers.filter(w=>w.state==='sit').sort((a,b)=>a.x-b.x).forEach(w=>drawSitter(g,w));
+  drawGuy(g);dogs.forEach(dg=>{if(dg.y>150)drawDog(g,dg);});
   pigeons.forEach(p=>{if(p.state==='fly')drawPigeon(g,p);});
   steam.forEach(s=>{g.fillStyle=`rgba(236,236,236,${.45*(1-s.t/2.2)})`;g.fillRect(Math.round(s.x),Math.round(s.y),1,1);});
   g.globalCompositeOperation='source-atop';
