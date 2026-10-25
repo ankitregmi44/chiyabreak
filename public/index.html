@@ -1446,6 +1446,10 @@ function setPlace(p){place=p;const P=PL[p];curBG=P.bg;curFG=P.fg;winGlow=P.glow;
   pigeons=PIGS.slice(0,P.npig);const ng=P.npig-P.nroof;
   pigeons.forEach((q,i)=>{q.fl=0;if(i<ng){q.state='ground';q.x=P.pig[0]+Math.random()*P.pig[1];q.y=YMIN+2+Math.random()*(146-YMIN);}
     else{const s=SPOTS[0];q.state='roof';q.x=s.x+(Math.random()-.5)*s.w;q.y=s.y;}q.wait=5+Math.random()*15;});
+  // arrive at night and everyone is already settled: dogs asleep in their beds, pigeons roosting on the roofs
+  {const h=hourNow();
+    if(dogNight(h))dogs.forEach(dg=>{dg.x=dg.bx;dg.y=DOGY;dg.mode='sleep';dg.dir=dg.bdir;dg.t=600+Math.random()*600;});
+    if(nightAmt(h)>.6){roost=true;pigeons.forEach(q=>{const s=pick(SPOTS);q.state='roof';q.x=s.x+(Math.random()-.5)*s.w;q.y=s.y;q.loop=null;q.dance=0;});}}
   staticDirty=true;hudT=0;document.body.classList.toggle('mir',MIR);cv.setAttribute('aria-label','Pixel art of '+P.aria);cv2.setAttribute('aria-label',P.aria+', drawn in a smooth illustrated style');}
 
 /* ---------- one frame ---------- */
