@@ -1052,7 +1052,7 @@ const DS={px:false,
   brick(x,y,w,h,base,seam){sB(x,y,w,h,base);sBrick(x,y,w,h,seam);sOut(x,y,w,h);},win(x,y,w,h){sWin(x,y,w,h);},
   text(t,cx,y,col){sT(t,cx,y+4.6,5.8,col);}};
 const DPg=()=>{DP.c=g;return DP;};
-const PSTONE='#cdb690',PSTL='#e2cfa6',PSTD='#a8916a',PARCH='#2a1e16',PGOLD='#d8a840',PGOLDL='#f0d070',PGOLDD='#a87c22';
+const PSTONE='#b5aa98',PSTL='#ccc3b2',PSTD='#8d8473',PARCH='#2a1e16',PGOLD='#d8a840',PGOLDL='#f0d070',PGOLDD='#a87c22';
 
 // a round-topped arch opening
 function pArch(D,x,y,w,h,col){const r=w/2,p=[x,y+h,x,y+r];for(let k=1;k<8;k++){const a=Math.PI+k*Math.PI/8;p.push(x+r+Math.cos(a)*r,y+r+Math.sin(a)*r);}p.push(x+w,y+r,x+w,y+h);D.poly(p,col);}
@@ -1098,6 +1098,10 @@ function krishnaMandir(D){const cx=43;
   D.ell(cx,17.6,5.4,1.7,PSTD,1);D.ell(cx,17,4.4,.8,PSTONE);
   D.poly([cx-1.8,16.4,cx+1.8,16.4,cx+2.2,13.8,cx+1.2,11.6,cx-1.2,11.6,cx-2.2,13.8],PGOLD,1);D.rect(cx-2.6,15.6,5.2,.8,PGOLDD);
   D.rect(cx-.5,7,1,5,PGOLD);D.ell(cx,6.6,.9,.9,PGOLDL);
+  // weathered stone: faint speckles
+  let h=7;const hr=()=>{h=(h*16807)%2147483647;return h/2147483647;};
+  [[cx-42,113,84,5],[cx-39,109,78,4],[cx-35,88,70,7],[cx-26,70,52,5],[cx-16,53,32,4]].forEach(([x,y,w,hh])=>{for(let k=0;k<w*hh/9;k++)D.rect(x+hr()*(w-1),y+hr()*(hh-.6),1,.6,hr()<.5?'rgba(70,62,50,.22)':'rgba(255,250,240,.16)');});
+  for(let k=0;k<26;k++){const y=24+hr()*26,hw=S[0][0]*(1-(51-y)/40);D.rect(cx-hw+hr()*hw*2,y,.8,.6,'rgba(70,62,50,.2)');}
   if(D.px)[1,4,7].forEach(k=>glowP.push({x:Math.round(cx-33.4+k*7.6),y:101,w:5,h:8,on:true,a:.3}));}
 
 /* --- Garuda on his stone pillar, kneeling with hands joined, facing the temple --- */
@@ -1134,10 +1138,8 @@ function hiti(D){const x=85;   // one stone spout (dhunge dhara) in a small sunk
   D.rect(71,126.6,28,1.6,'#9c8a76',1);D.rect(71,126.6,28,.6,'#b8a690');}
 function hitiWater(D){const x=85;D.line(x,123.4,x+.3,124.8,'#bfe2f0',.6);const t=(T*3)%1;D.rect(x-.3,123.6+t*1.2,.6,.6,'#e8f6fb');
   const r=(T*1.2)%1;D.ell(x+.2,125.4,1+r*2.4,.45,`rgba(220,240,250,${.55*(1-r)})`);}
-/* a small Newari house with trees behind the bell */
+/* a small Newari house behind the bell */
 function bellHouse(D){
-  [[60,58,11,10,'#3e6b3a'],[104,54,12,11,'#3e6b3a'],[82,50,10,9,'#4f7d45'],[96,60,8,7,'#4f7d45'],[68,64,7,6,'#4f7d45']].forEach(([x,y,rx,ry,c])=>D.ell(x,y,rx,ry,c,1));
-  [[98,49],[78,46],[56,54]].forEach(([x,y])=>D.ell(x,y,3,2,'#6b9a5a'));
   D.brick(64,70,44,48,'#9a4128','#82351f');
   D.poly([58,70,114,70,111,63.6,61,63.6],'#5e3624',1);for(let x=62;x<111;x+=3)D.line(x,64.2,x-.6,69.6,'#4a2a1c',.3);D.rect(57,70,58,1.4,'#2e190f');
   for(let x=66;x<108;x+=5)D.line(x,71.4,x+2,75,'#3a2014',.4);
