@@ -182,7 +182,7 @@ const GL={' ':['00','00','00','00','00'],P:['110','101','110','100','100'],V:['1
 function ptext(c,s,x,y,col){for(const ch of s){const gl=GL[ch];if(gl)gl.forEach((row,ry)=>[...row].forEach((v,rx)=>{if(v==='1')R(c,x+rx,y+ry,1,1,col);}));x+=(gl?gl[0].length:3)+1;}}
 
 /* ---------- static background ---------- */
-const glowK=[],glowP=[],lampsK=[{x:99,y:104},{x:223,y:104}],lampsP=[{x:156,y:104},{x:195,y:104}],CX=160;
+const glowK=[],glowP=[],lampsK=[{x:99,y:104},{x:223,y:104}],lampsP=[{x:124,y:104},{x:256,y:104}],CX=160;
 let winGlow=glowK,lamps=lampsK;
 function brickWall(c,x,y,w,h,base,seam){R(c,x,y,w,h,base);for(let yy=y+2;yy<y+h;yy+=3){R(c,x,yy,w,1,seam);const off=((yy-y)/3|0)%2?3:0;for(let xx=x+off;xx<x+w;xx+=6)R(c,xx,yy-2,1,2,seam);}
   for(let i=0;i<w*h/45;i++)R(c,x+rnd()*(w-2),y+rnd()*(h-1),2,1,rnd()<.5?'rgba(255,220,190,.09)':'rgba(0,0,0,.09)');}
@@ -422,7 +422,7 @@ function drawWalker(c,w){if(w.type==='cyclist')return drawCyclist(c,w);const x=M
 
 const SPOTS_K=[{x:CX,y:96,w:30},{x:CX-34,y:108,w:8},{x:CX+34,y:108,w:8},{x:278,y:93,w:56},{x:35,y:34,w:56},{x:88,y:59,w:34},{x:227,y:72,w:24}];
 // Patan perches: Krishna Mandir ledges, the Garuda, the bell roof, the pagoda and the shop roof
-const SPOTS_P=[{x:43,y:85,w:62},{x:43,y:66,w:44},{x:93,y:58,w:3},{x:116,y:63,w:14},{x:166,y:97,w:24},{x:166,y:81,w:36},{x:258,y:40,w:110},{x:251,y:92,w:36}];
+const SPOTS_P=[{x:160,y:85,w:62},{x:160,y:66,w:44},{x:213,y:58,w:3},{x:236,y:63,w:14},{x:286,y:97,w:24},{x:286,y:81,w:36},{x:60,y:40,w:110},{x:53,y:92,w:36}];
 let SPOTS=SPOTS_K;
 const pigeons=Array.from({length:10},(_,i)=>({x:i<8?190+Math.random()*70:CX-12+Math.random()*24,y:i<8?130+Math.random()*16:96,dir:Math.random()<.5?-1:1,state:i<8?'ground':'roof',ph:Math.random()*6,hop:Math.random()*3,wait:5+Math.random()*15,fl:0,vx:0,tx:0,ty:0,tKind:''}));
 let roost=false;
@@ -451,7 +451,7 @@ const DOGS_K=()=>[
   {...dogBase,x:262,y:146,dir:-1,mode:'sleep',t:18,bx:93,bdir:1,sx:282,fur:'#b07a45',dk:'#7f552e',lt:'#d6a46e',eye:'#2a1d14'},
   {...dogBase,x:140,y:138,dir:1,mode:'sit',t:9,bx:106,bdir:-1,sx:268,fur:'#2e2924',dk:'#171310',lt:'#9a7650',eye:'#e8dcc8'}];
 // Patan: one black street dog who sleeps beside the didi
-const DOGS_P=()=>[{...dogBase,x:70,y:142,dir:1,mode:'sleep',t:20,bx:225,bdir:-1,sx:250,fur:'#1f1c1a',dk:'#0e0c0b',lt:'#4a423c',eye:'#e8dcc8'}];
+const DOGS_P=()=>[{...dogBase,x:70,y:142,dir:1,mode:'sleep',t:20,bx:225,bdir:-1,sx:52,fur:'#1f1c1a',dk:'#0e0c0b',lt:'#4a423c',eye:'#e8dcc8'}];
 let dogs=DOGS_K();
 const DOGY=160,ROLL=2.4;
 // roll-over pose: 0 = lying on its side, 1 = flat on its back
@@ -516,7 +516,7 @@ function drawDog(c,dg){const x=Math.round(dg.x),y=Math.round(dg.y),d=dg.dir,{fur
 
 /* ---------- shops: open 8 AM - 10 PM (Nepal time) with a keeper inside; shutters down and lights off at night ---------- */
 const SHOPS_K={pot:{x:5,y:99,w:62,h:19},momo:{x:214,y:101,w:26,h:17},chiya:{x:246,y:100,w:68,h:18}},OPEN=8,CLOSE=22;
-const SHOPS_P={momo:{x:202,y:100,w:24,h:18},chiya:{x:230,y:100,w:42,h:18},statue:{x:278,y:99,w:38,h:19}};
+const SHOPS_P={momo:{x:4,y:100,w:24,h:18},chiya:{x:32,y:100,w:42,h:18},statue:{x:80,y:99,w:38,h:19}};
 let SHOPS=SHOPS_K;
 let shut=1;   // 0 = shutters fully up (open), 1 = fully down (closed)
 function shutterAt(h){const k=40/3600;   // in live time the shutters roll up/down over about 40 seconds
@@ -674,7 +674,7 @@ function drawBoardIn(c){
 // Tihar string lights along roofs and the temple eaves: [x1,y1,x2,y2,sag]
 const TSTR_K=[[0,33,72,33,1],[66,67,110,67,2],[CX-44,84,CX+44,84,0],[CX-33,64,CX+33,64,0],[CX-24,48,CX+24,48,0],[210,77,244,77,1],[238,49,320,49,2]];
 const bulbY=(x,x1,y1,x2,y2,sg)=>{const t=(x-x1)/((x2-x1)||1);return Math.round(y1+(y2-y1)*t+Math.sin(t*Math.PI)*sg);};
-const TSTR_P=[[196,46,320,46,2],[136,83,196,83,0],[144,63,188,63,0],[150,47,182,47,0],[6,87,80,87,0],[16,67,70,67,0],[98,70,134,70,1]];
+const TSTR_P=[[0,46,124,46,2],[256,83,316,83,0],[264,63,308,63,0],[270,47,302,47,0],[123,87,197,87,0],[133,67,187,67,0],[218,70,254,70,1]];
 const DIYO_K=[112,126,140,154,168,182,196,210,224,238,252,266],DIYO_P=DIYO_K.map(x=>W-x);
 // where the festival board hangs (offset from its Kathmandu spot on the left building)
 let TSTR=TSTR_K,DIYO=DIYO_K,BOARD=[0,0];
@@ -1176,7 +1176,11 @@ function patanShopsBG(D){
   if(D.px)glowP.push({x:202,y:100,w:24,h:18,on:true,a:.5,shop:'momo'},{x:230,y:100,w:42,h:18,on:true,a:.55,shop:'chiya'},{x:278,y:99,w:38,h:19,on:true,a:.45,shop:'statue'});}
 
 function patanLamps(D){lampsP.forEach(l=>{D.rect(l.x-.45,l.y+1.4,.9,20.6,'#2a2522');D.rect(l.x-1.3,l.y+21,2.6,1.1,'#2a2522');D.poly([l.x-1.6,l.y-.4,l.x+1.6,l.y-.4,l.x,l.y-2],'#3a3330');D.rect(l.x-1.1,l.y-.4,2.2,1.9,'#e8d6a0');});}
-function patanStatic(D){pagodaP(D);patanShopsBG(D);krishnaMandir(D);garudaPillar(D);taleju(D);hiti(D);patanLamps(D);}
+// shift a part of the scene sideways (also moves any night-glow windows it adds)
+function pAt(D,dx,fn){const n=glowP.length,c=D.px?D.c:C;c.save();c.translate(dx,0);fn(D);c.restore();if(D.px)for(let i=n;i<glowP.length;i++)glowP[i].x+=dx;}
+// layout: shops on the left, Krishna Mandir and Garuda in the centre, the bell and the pagoda on the right
+const PX={shops:-198,krishna:117,garuda:120,bell:120,pagoda:120,hiti:34,ping:64};
+function patanStatic(D){pAt(D,PX.pagoda,pagodaP);pAt(D,PX.shops,patanShopsBG);pAt(D,PX.krishna,krishnaMandir);pAt(D,PX.garuda,garudaPillar);pAt(D,PX.bell,taleju);pAt(D,PX.hiti,hiti);patanLamps(D);}
 // pixel version: built once into its own background, the foreground steps are the Kathmandu ones mirrored
 (function buildPatanPx(){const keep=winGlow;winGlow=glowP;pxGround(bP);DP.c=bP;patanStatic(DP);winGlow=keep;
   fP.save();fP.setTransform(-1,0,0,1,W,0);fP.drawImage(fgC,0,0);fP.restore();})();
@@ -1191,10 +1195,10 @@ function sStatueKeeper(){const wob=Math.sin(T*5)*1.1;
   C.save();C.translate(291,108.6);C.scale(1.2,1.2);sE(0,-1,1.6,.9,PGOLD);sP([-1,-1.3,1,-1.3,.7,-3.3,-.7,-3.3],PGOLD,0);sC(0,-4,.8,PGOLDL,0);C.restore();
   sStroke([296.6,106.4,294.6,108.6,292.6+wob,108.4],'#2e6da4',1.2);sE(292.4+wob,108.2,1.2,.8,'#e9dcc3',0);
   sR(286,112,24,6,.4,'#5a3626');sB(286,112,24,1,'#7a4a32');sR(304,108.6,2,3.4,.5,PGOLD,0);sC(305,108.4,.8,PGOLDL,0);sE(308,111,1.2,1,'#a8743a',0);}
-function patanShopsPx(c){if(shut<1){c.save();c.translate(-12,0);momoKeeper(c);c.restore();c.save();c.translate(-18,0);chiyaKeeper(c);c.restore();statueKeeperPx(c);}
-  DP.c=c;hitiWater(DP);Object.values(SHOPS).forEach(s=>drawShutter(c,s,shut));}
-function patanShopsS(){if(shut<1){C.save();C.translate(-12,0);sMomoKeeper();C.restore();C.save();C.translate(-18,0);sChiyaKeeper();C.restore();sStatueKeeper();}
-  hitiWater(DS);Object.values(SHOPS).forEach(s=>sShutter(s,shut));}
+function patanShopsPx(c){if(shut<1){const o=PX.shops;c.save();c.translate(o-12,0);momoKeeper(c);c.restore();c.save();c.translate(o-18,0);chiyaKeeper(c);c.restore();c.save();c.translate(o,0);statueKeeperPx(c);c.restore();}
+  DP.c=c;pAt(DP,PX.hiti,hitiWater);Object.values(SHOPS).forEach(s=>drawShutter(c,s,shut));}
+function patanShopsS(){if(shut<1){const o=PX.shops;C.save();C.translate(o-12,0);sMomoKeeper();C.restore();C.save();C.translate(o-18,0);sChiyaKeeper();C.restore();C.save();C.translate(o,0);sStatueKeeper();C.restore();}
+  pAt(DS,PX.hiti,hitiWater);Object.values(SHOPS).forEach(s=>sShutter(s,shut));}
 
 /* Dashain: a bamboo ping (swing) with children playing on it in the daytime */
 function pKid(D,fx,fy,ux,uy,shirt,pants,s=1.3,arms){const P=k=>[fx+ux*k*s,fy+uy*k*s],hip=P(3.2),sh=P(7),hd=P(9.2),px=-uy,py=ux;
@@ -1217,8 +1221,8 @@ const PL={
   ktm:{name:'Kathmandu',bg:bgC,fg:fgC,glow:glowK,lamps:lampsK,spots:SPOTS_K,shops:SHOPS_K,seats:SEATS_K,seatR:[112,268],tstr:TSTR_K,diyo:DIYO_K,board:[0,0],mir:false,ymin:124,dogs:DOGS_K,
     tl:[[CX-18,95],[CX-11,95],[CX+11,95],[CX+18,95]],steam:[[257,105],[289,109],[231,100],[231,100],[230,100]],pig:[190,70],
     aria:'Kathmandu Durbar Square: a pagoda temple, a clay pot shop, a momo shop, a tea café, people walking, pigeons and street dogs, seen from the temple steps where a dai sits with a radio'},
-  patan:{name:'Patan',bg:bgP,fg:fgP,glow:glowP,lamps:lampsP,spots:SPOTS_P,shops:SHOPS_P,seats:SEATS_P,seatR:[52,208],tstr:TSTR_P,diyo:DIYO_P,board:[227,4],mir:true,ymin:132,dogs:DOGS_P,
-    tl:[[156,95],[160,95],[172,95],[176,95],[20,106],[42,106],[65,106]],steam:[[239,105],[219,100],[219,100],[218,100]],pig:[40,110],
+  patan:{name:'Patan',bg:bgP,fg:fgP,glow:glowP,lamps:lampsP,spots:SPOTS_P,shops:SHOPS_P,seats:SEATS_P,seatR:[52,208],tstr:TSTR_P,diyo:DIYO_P,board:[25,4],mir:true,ymin:132,dogs:DOGS_P,
+    tl:[[276,95],[280,95],[292,95],[296,95],[137,106],[159,106],[182,106]],steam:[[41,105],[21,100],[21,100],[20,100]],pig:[60,150],
     aria:'Patan Durbar Square: the stone Krishna Mandir, the golden Garuda on his pillar, the big Taleju bell, a stone water spout, a pagoda, and momo, tea and statue shops, seen from the temple steps where a didi sits with a radio'}};
 const PLACE_ORDER=['ktm','patan'];   // Bhaktapur can be added here later
 let TLAMPS=PL.ktm.tl,STEAM=PL.ktm.steam;
@@ -1257,7 +1261,7 @@ function renderS(h,night,warm){TH=THEMES[style];if(staticDirty)drawStaticS();
   if(fest==='dashain'&&wx.rain<.3&&night<.5)sKites();
   // the square
   C=scX;scX.setTransform(1,0,0,1,0,0);scX.globalCompositeOperation='source-over';scX.globalAlpha=1;scX.clearRect(0,0,pw,ph);scX.drawImage(bgS,0,0);scX.setTransform(K,0,0,K,0,0);
-  sShops();if(place==='patan')patanPing(DS);
+  sShops();if(place==='patan')pAt(DS,PX.ping,patanPing);
   if(wx.rain>.02){scX.fillStyle=`rgba(25,30,42,${.28*wx.rain})`;scX.fillRect(0,118,320,32);}
   const ents=walkers.filter(w=>w.state!=='sit').map(w=>({y:w.y,d:()=>sWalker(w)}));
   pigeons.forEach(p=>{if(p.state==='ground')ents.push({y:p.y,d:()=>sPigeon(p)});});
@@ -1358,7 +1362,7 @@ function render(h,night,warm){
   if(fest==='dashain'&&wx.rain<.3&&night<.5)drawKites(ctx);
 
   g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.drawImage(curBG,0,0);
-  drawShops(g);if(place==='patan')patanPing(DPg());
+  drawShops(g);if(place==='patan')pAt(DPg(),PX.ping,patanPing);
   if(wx.rain>.02){g.fillStyle=`rgba(25,30,42,${.28*wx.rain})`;g.fillRect(0,118,W,32);}
   const ents=walkers.filter(w=>w.state!=='sit').map(w=>({y:w.y,d:()=>drawWalker(g,w)}));
   pigeons.forEach(p=>{if(p.state==='ground')ents.push({y:p.y,d:()=>drawPigeon(g,p)});});
