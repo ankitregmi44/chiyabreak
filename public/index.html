@@ -315,6 +315,7 @@ const BAL=['#e8443a','#f2c230','#3aa0e8','#e86fb4','#5fbf6a','#f08a2a','#9b6be8'
 let place='ktm',MIR=false,MIRC=W;const mx=x=>MIR?MIRC-x:x;   // Patan and Bhaktapur are mirrored: the didi / baje face left
 const who=()=>place==='patan'?'didi':place==='bkt'?'baje':'dai';
 let nightNow=false,YMIN=124;
+const lateNight=h=>h>=22||h<5;
 const JK=['#2b3a55','#5a3a2a','#3a4a3a','#6b2a3a','#1f1f24','#4a4a52','#7a5a2a'];
 const coldNow=()=>{try{return wxName(hourNow())==='fog'||(st.tm==='live'&&liveHere().t!==null&&liveHere().t<8);}catch(e){return false;}};
 function newWalker(edge,forced){const dir=Math.random()<.5?1:-1;let type=forced||pick(['man','man','woman','woman','woman','elder','child','tourist']);if(!forced&&nightNow&&type==='child')type='man';const shirt=type==='woman'?pick(KU):pick(SH);
@@ -1319,7 +1320,15 @@ function patanStatic(D){bellHouse(D);pAt(D,PX.pagoda,pagodaP);patanShopsBG(D);pA
   pAt(D,PX.bell,taleju);pAt(D,PX.spout,hiti);patanLamps(D);}
 // pixel version: built once into its own background, the foreground steps are the Kathmandu ones mirrored
 buildBG();   // Kathmandu pixel background (needs the drawing helpers above)
-(function buildPatanPx(){const keep=winGlow;winGlow=glowP;pxGround(bP);DP.c=bP;patanStatic(DP);winGlow=keep;
+/* After a pixel background is built, find which pixels of each lit window are still visible (not hidden behind a temple, pole or roof
+   drawn in front), so its light only shines there. Window insides use only these colours. */
+const WINSET=new Set(['#1c120b','#5a3822','#4e2c1e','#5a3424','#2f4a3a','#2a1e16']);
+function windowVis(c,list){list.forEach(e=>{if(e.shop)return;const x0=Math.round(e.x),y0=Math.round(e.y),w=Math.round(e.w),h=Math.round(e.h);if(w<1||h<1)return;
+  const d=c.getImageData(x0,y0,w,h).data,vis=[];
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const k=(j*w+i)*4,hx='#'+[d[k],d[k+1],d[k+2]].map(v=>v.toString(16).padStart(2,'0')).join('');if(WINSET.has(hx))vis.push([x0+i,y0+j]);}
+  if(vis.length===w*h)e.vis=null;else{e.vis=vis;if(!vis.length)e.on=false,e.dead=1;}});}
+windowVis(b,glowK);
+(function buildPatanPx(){const keep=winGlow;winGlow=glowP;pxGround(bP);DP.c=bP;patanStatic(DP);winGlow=keep;windowVis(bP,glowP);
   fP.save();fP.setTransform(-1,0,0,1,W,0);fP.drawImage(fgC,0,0);fP.restore();})();
 
 /* --- moving things in Patan: shopkeepers, the statue seller, the water, and the Dashain swing --- */
@@ -1408,7 +1417,7 @@ function dryingPots(D){[[262,122],[267,121.4],[272,122.2],[277,121.6],[282,122],
   const r=i%3===1?2:1.6;D.ell(x,b-r*.95,r,r*.95,i%2?'#c98a5a':'#d39a68',1);D.rect(x-r*.5,b-r*1.9-.5,r,.8,'#a8683c');});}
 function bktLamps(D){lampsB.forEach(l=>{D.rect(l.x-.45,l.y+1.4,.9,20.6,'#2a2522');D.rect(l.x-1.3,l.y+21,2.6,1.1,'#2a2522');D.poly([l.x-1.6,l.y-.4,l.x+1.6,l.y-.4,l.x,l.y-2],'#3a3330');D.rect(l.x-1.1,l.y-.4,2.2,1.9,'#e8d6a0');});}
 function bktStatic(D){BGLOW=glowB;bktBackHouses(D);bktShopsBG(D);nyatapola(D);bhairavnath(D);dryingPots(D);mallaKing(D);bktLamps(D);BGLOW=glowP;}
-(function buildBktPx(){const keep=winGlow;winGlow=glowB;pxGround(bB);DP.c=bB;bktStatic(DP);winGlow=keep;})();
+(function buildBktPx(){const keep=winGlow;winGlow=glowB;pxGround(bB);DP.c=bB;bktStatic(DP);winGlow=keep;windowVis(bB,glowB);})();
 
 /* moving things: shopkeepers, the juju dhau seller, the potter at his wheel (daytime) */
 function jujuKeeperPx(c){const sc=Math.floor(T*1.6)%2;keeperHead(c,108,101,'#a86b45','#1b1410',true);R(c,107,105,6,6,'#e67e22');R(c,107,105,1,6,'#b8601a');
@@ -1447,7 +1456,7 @@ let TLAMPS=PL.ktm.tl,STEAM=PL.ktm.steam,VISIT=PL.ktm.visit;
 function setPlace(p){place=p;const P=PL[p];curBG=P.bg;curFG=P.fg;winGlow=P.glow;lamps=P.lamps;SPOTS=P.spots;SHOPS=P.shops;SEATS=P.seats;SEATR=P.seatR;
   TSTR=P.tstr;DIYO=P.diyo;BOARD=P.board;MIR=P.mir;YMIN=P.ymin;TLAMPS=P.tl;STEAM=P.steam;VISIT=P.visit;SEATX=P.seatX||null;STAIRS=P.stairs||null;MIRC=P.mirC||W;
   dogs=P.dogs();play=null;playT=40+Math.random()*80;
-  walkers=[0,0,0,0].map(()=>newWalker(false));steam=[];notes=[];zs=[];daiPrev=null;sparks=[];fx=[];plates=dogs.map(d=>({x:clamp(d.x+10,20,300),y:clamp(d.y,YMIN+8,146)}));
+  {const h=hourNow(),n=lateNight(h)?(Math.random()<.5?1:0):dogNight(h)||h>=20.5?2:4;walkers=Array.from({length:n},()=>newWalker(false));spawnT=lateNight(h)?40+Math.random()*120:1;}steam=[];notes=[];zs=[];daiPrev=null;sparks=[];fx=[];plates=dogs.map(d=>({x:clamp(d.x+10,20,300),y:clamp(d.y,YMIN+8,146)}));
   pigeons=PIGS.slice(0,P.npig);const ng=P.npig-P.nroof;
   pigeons.forEach((q,i)=>{q.fl=0;if(i<ng){q.state='ground';q.x=P.pig[0]+Math.random()*P.pig[1];q.y=YMIN+2+Math.random()*(146-YMIN);}
     else{const s=SPOTS[0];q.state='roof';q.x=s.x+(Math.random()-.5)*s.w;q.y=s.y;}q.wait=5+Math.random()*15;});
@@ -1517,7 +1526,7 @@ function renderS(h,night,warm){TH=THEMES[style];if(staticDirty)drawStaticS();
   X.setTransform(1,0,0,1,0,0);if(TH.filt)X.filter=TH.filt;X.drawImage(scS,0,0);X.filter='none';X.setTransform(K,0,0,K,0,0);C=X;
   // lights
   const L=clamp((night-.12)/.55,0,1);X.globalCompositeOperation='lighter';
-  if(L>0){winGlow.forEach(w=>{if(!w.on||(w.shop&&!shopOpen()))return;const a=w.a*L*(w.shop?.4:1);X.fillStyle=`rgba(255,165,75,${a})`;X.fillRect(w.x,w.y,w.w,w.h);sHalo(w.x+w.w/2,w.y+w.h/2,Math.max(w.w,w.h)*.8+3,a*.35);});
+  if(L>0){winGlow.forEach(w=>{if(!w.on||(w.shop&&!shopOpen()))return;const a=w.a*L*(w.shop?.4:1);X.fillStyle=`rgba(255,165,75,${a})`;if(w.vis)w.vis.forEach(([x,y])=>X.fillRect(x,y,1,1));else X.fillRect(w.x,w.y,w.w,w.h);if(!w.vis&&!w.rand)sHalo(w.x+w.w/2,w.y+w.h/2,Math.max(w.w,w.h)*.8+3,a*.35);});
     lamps.forEach(l=>{X.fillStyle=`rgba(255,225,150,${.9*L})`;X.fillRect(l.x-1.1,l.y-.4,2.2,1.9);sHalo(l.x,l.y+1,18,.45*L);
       if(wx.rain>.2){X.fillStyle=`rgba(255,200,120,${.18*L*wx.rain})`;X.fillRect(l.x-1.5,127,3,20);}});
     TLAMPS.forEach(([x,y],i)=>{const fl=.7+.3*Math.sin(T*9+i*2);sC(x+.5,y+.5,.5,`rgba(255,200,90,${.95*L*fl})`,0);sHalo(x+.5,y+.5,5,.35*L*fl);});
@@ -1580,7 +1589,7 @@ function fireLights(px,L){const g=px?ctx:X2,dot=(x,y,c,a)=>{g.globalAlpha=a;if(p
   fx.forEach(f=>{if(f.k==='gamala')glow(f.x,f.y-6,12,.5*Math.min(1,f.t/.8));if(f.k==='pop')glow(f.x,f.y-1,10*(1-f.t/f.dur)+2,.8*(1-f.t/f.dur));});}
 // windows in the background houses switch on and off now and then
 let winT=4;
-function updWindows(dt){winT-=dt;if(winT>0)return;winT=3+Math.random()*6;const r=winGlow.filter(w=>w.rand);if(r.length){const w=pick(r);w.on=!w.on;}}
+function updWindows(dt){winT-=dt;if(winT>0)return;winT=3+Math.random()*6;const r=winGlow.filter(w=>w.rand&&!w.dead);if(r.length){const w=pick(r);w.on=!w.on;}}
 
 /* ---------- an aeroplane crosses the sky slowly every few hours (chiyabreak.com/#plane shows one soon) ---------- */
 let plane=null,planeNext=Date.now()+(location.hash==='#plane'?3e3:(1+Math.random()*2)*3600e3);
@@ -1601,12 +1610,13 @@ let T=0,last=performance.now(),curMood='saanjh',hudT=0;
 function update(dt,h){
   const target=[1,1,1,1,1,2,4,6,7,7,7,7,7,7,7,7,7,7,6,5,3,2,1,1][Math.floor(h)%24];
   nightNow=h>=20.5||h<6;roost=nightAmt(h)>.6;shut=shutterAt(h);updDai(h,dt);
-  const want=Math.max(1,Math.round(target*(1-.5*wx.rain)*(1-.25*wx.fog)));
+  const late=lateNight(h);   // 10 PM - 5 AM: only one or two people every five minutes or so
+  const want=late?1:Math.max(1,Math.round(target*(1-.5*wx.rain)*(1-.25*wx.fog)));
   spawnT-=dt;if(walkers.filter(w=>w.state!=='sit').length<want&&spawnT<=0){const r=Math.random();
     let ws;if(!nightNow&&r<.14)ws=spawnGroup('couple');else if(!nightNow&&r<.25&&wx.rain<.5)ws=spawnGroup('family');else if(nightNow&&r<.3)ws=spawnGroup('couple');else{ws=[newWalker(true)];walkers.push(ws[0]);}
     maybeSeat(ws,h);if(ws.length===1)maybeShop(ws[0]);if(ws.length===1)maybeStairs(ws[0],h);
-    spawnT=(nightNow?6:1.5)+Math.random()*(nightNow?10:3);}
-  cycT-=dt;if(cycT<=0){const day=h>=6&&h<21;cycT=day?18+Math.random()*35:70+Math.random()*90;
+    spawnT=late?140+Math.random()*160:(nightNow?6:1.5)+Math.random()*(nightNow?10:3);}
+  cycT-=dt;if(cycT<=0){const day=h>=6&&h<21;cycT=day?18+Math.random()*35:late?500+Math.random()*500:70+Math.random()*90;
     if(wx.rain<.3&&walkers.filter(w=>w.type==='cyclist').length<2)walkers.push(newWalker(true,'cyclist'));}
   walkers.forEach(w=>{if(w.type==='cyclist'&&!w.rang&&w.x>110&&w.x<210){w.rang=true;if(Math.random()<.45)bikeBell();}});
   balloonT-=dt;if(balloonT<=0){balloonT=50+Math.random()*70;if(wx.rain<.3&&h>=7&&h<20&&!walkers.some(w=>w.type==='balloon'))walkers.push(newWalker(true,'balloon'));}
@@ -1685,7 +1695,7 @@ function render(h,night,warm){
   const L=clamp((night-.12)/.55,0,1);
   ctx.globalCompositeOperation='lighter';
   if(L>0){
-    winGlow.forEach(w=>{if(!w.on||(w.shop&&!shopOpen()))return;const a=w.a*L*(w.shop?.4:1);ctx.fillStyle=`rgba(255,165,75,${a})`;ctx.fillRect(w.x,w.y,w.w,w.h);halo(w.x+w.w/2,w.y+w.h/2,Math.max(w.w,w.h)*.8+3,a*.35);});
+    winGlow.forEach(w=>{if(!w.on||(w.shop&&!shopOpen()))return;const a=w.a*L*(w.shop?.4:1);ctx.fillStyle=`rgba(255,165,75,${a})`;if(w.vis)w.vis.forEach(([x,y])=>ctx.fillRect(x,y,1,1));else ctx.fillRect(w.x,w.y,w.w,w.h);if(!w.vis&&!w.rand)halo(w.x+w.w/2,w.y+w.h/2,Math.max(w.w,w.h)*.8+3,a*.35);});
     lamps.forEach(l=>{ctx.fillStyle=`rgba(255,220,140,${.9*L})`;ctx.fillRect(l.x-1,l.y,3,1);halo(l.x,l.y+1,18,.45*L);
       if(wx.rain>.2){ctx.fillStyle=`rgba(255,200,120,${.2*L*wx.rain})`;ctx.fillRect(l.x-1,127,3,20);}});
     TLAMPS.forEach(([x,y],i)=>{const fl=.7+.3*Math.sin(T*9+i*2);ctx.fillStyle=`rgba(255,200,90,${.95*L*fl})`;ctx.fillRect(x,y,1,1);halo(x,y,5,.35*L*fl);});
