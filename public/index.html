@@ -199,7 +199,7 @@ function pxGround(b){
   for(let y=118;y<150;y+=3){R(b,0,y,W,1,'#77614f');const off=((y-118)/3)%2?4:0;for(let x=off;x<W;x+=8)R(b,x,y+1,1,2,'#77614f');}
   for(let i=0;i<110;i++)R(b,rnd()*W,119+rnd()*30,3,1,rnd()<.5?'#98816d':'#806b5a');}
 function buildBG(){
-  pxGround(b);
+  pxGround(b);DP.c=b;ktmBackHouses(DP);
   // left building with clay pot shop
   brickWall(b,0,40,70,78,'#9a4128','#82351f');
   R(b,0,34,72,2,'#5e3624');R(b,0,36,75,4,'#43261a');R(b,0,40,70,1,'#5a2516');
@@ -263,7 +263,6 @@ function buildBG(){
   R(f,284,116,12,3,'#87837a');R(f,283,119,2,7,'#87837a');R(f,285,118,10,9,'#a8a499');R(f,286,121,1,1,'#3a3833');R(f,286,124,4,1,'#5a5750');R(f,285,124,1,2,'#b9b5aa');
   R(f,299,122,2,5,'#87837a');R(f,300,121,2,1,'#87837a');
 }
-buildBG();
 
 /* ---------- sky data ---------- */
 const PK=[[30,80],[88,73],[146,79],[205,69],[268,76],[318,82]],pkY=[],pkSnow=[];
@@ -310,13 +309,19 @@ const SH=['#c0392b','#2e6da4','#e2b13c','#3e8e5e','#efe6d6','#7a4b8c','#d9733a',
 const BAL=['#e8443a','#f2c230','#3aa0e8','#e86fb4','#5fbf6a','#f08a2a','#9b6be8','#ffffff'];
 let place='ktm',MIR=false,MIRC=W;const mx=x=>MIR?MIRC-x:x;   // Patan and Bhaktapur are mirrored: the didi / baje face left
 const who=()=>place==='patan'?'didi':place==='bkt'?'baje':'dai';
-let nightNow=false,YMIN=124;   // YMIN: the back edge of where people walk (Patan has the stone water spout there)
+let nightNow=false,YMIN=124;
+const JK=['#2b3a55','#5a3a2a','#3a4a3a','#6b2a3a','#1f1f24','#4a4a52','#7a5a2a'];
+const coldNow=()=>{try{return wxName(hourNow())==='fog'||(st.tm==='live'&&liveTemp!==null&&liveTemp<8);}catch(e){return false;}};   // YMIN: the back edge of where people walk (Patan has the stone water spout there)
 function newWalker(edge,forced){const dir=Math.random()<.5?1:-1;let type=forced||pick(['man','man','woman','woman','woman','elder','child','tourist']);if(!forced&&nightNow&&type==='child')type='man';const shirt=type==='woman'?pick(KU):pick(SH);
   const w={dir,type,y:YMIN+Math.random()*(147-YMIN),x:edge?(dir>0?-16:W+16):20+Math.random()*(W-40),sp:(type==='elder'?4.5:type==='child'?10:type==='balloon'?3.5:7.5)+Math.random()*2.5,dist:Math.random()*10,
     shirt,shirtD:shade(shirt,.75),shirt2:pick(KU),skin:pick(SK),hair:type==='elder'?'#cfc9c0':'#1b1410',
     legC:type==='woman'?'#efe2c8':type==='tourist'?'#c9b48a':pick(['#2b2b33','#3b3a46','#4a4038']),
-    topi:(type==='man'&&Math.random()<.28)||(type==='elder'&&Math.random()<.6)||(type==='balloon'&&Math.random()<.5),   // not every man wears a dhaka topiumbItem:type!=='balloon'&&Math.random()<.8,umb:pick(UM),
+    // not every man wears a dhaka topi; most people carry an umbrella for the rain
+    topi:(type==='man'&&Math.random()<.28)||(type==='elder'&&Math.random()<.6)||(type==='balloon'&&Math.random()<.5),
+    umbItem:type!=='balloon'&&Math.random()<.9,umb:pick(UM),
     bcols:Array.from({length:7},()=>pick(BAL))};
+  // in fog, or when it's colder than 8°C, about half the people wear a warm jacket
+  if(type!=='balloon'&&type!=='tourist'&&coldNow()&&Math.random()<.55){const j=pick(JK);w.jacket=true;w.shirt=j;w.shirtD=shade(j,.72);if(type==='woman')w.shirt2=pick(['#e8dcc8','#c9b48a','#b03a2e']);}
   if(type==='tourist')w.skin=pick(['#e8c0a0','#d9a885']);
   if(type==='cyclist'){w.sp=22+Math.random()*8;w.y=YMIN+3+Math.random()*(143-YMIN);w.umbItem=false;w.topi=Math.random()<.25;
     w.bike=pick(['#2a5a8a','#8a2a2a','#2b2b2b','#3e7a4e','#6b3fa0']);w.cargo=pick(['none','none','basket','gas','flask']);}
@@ -405,6 +410,7 @@ function drawWalker(c,w){if(w.type==='cyclist')return drawCyclist(c,w);const x=M
     for(let i=0;i<torH;i++)R(c,d>0?xl+tw-2-Math.floor(i*(tw-2)/torH):xl+Math.floor(i*(tw-2)/torH),torTop+i,2,1,w.shirt2);}
   else if(!ch)R(c,xl,legTop-1,tw,1,w.shirtD);
   if(w.type==='tourist')R(c,d>0?xl-2:xl+tw,torTop+1,2,5,'#3e6b8a');
+  if(w.jacket){R(c,xl,torTop+2,tw,1,w.shirtD);R(c,xl,torTop+4,tw,1,w.shirtD);R(c,xl,torTop-1,tw,1,w.shirt);}
   // arms swing with the steps
   const armC=wo?w.shirt:w.shirtD,armL=torH-2,fax=d>0?xl+tw:xl-1,bax=d>0?xl-1:xl+tw;
   R(c,bax,torTop+1,1,armL,armC);R(c,bax-(fr?0:d),torTop+1+armL,1,1,w.skin);
@@ -474,6 +480,9 @@ const DOGS_K=()=>[
 const DOGS_P=()=>[{...dogBase,x:70,y:142,dir:1,mode:'sleep',t:20,bx:225,bdir:-1,sx:250,fur:'#1f1c1a',dk:'#0e0c0b',lt:'#4a423c',eye:'#e8dcc8'}];
 let dogs=DOGS_K();
 const DOGY=160,ROLL=2.4;
+const dogNight=h=>h>=21||h<6;   // bedtime for the dai/didi/baje and the dogs
+// tricks on a double tap (seconds each); a different one from last time, chosen at random
+const TRICKS={roll:ROLL,spin:1.8,beg:2.4,bow:2,bark:1.7};
 // roll-over pose: 0 = lying on its side, 1 = flat on its back
 const rollPose=dg=>{const p=dg.rollT/ROLL;return p<.15?p/.15:p>.8?(1-p)/.2:1;};
 let play=null,playT=40+Math.random()*80,nextBark=Date.now()+(location.hash==='#woof'?5e3:(3+Math.random())*3600e3);
@@ -481,7 +490,7 @@ function moveDog(dg,sp,dt){const dx=dg.tx-dg.x,dy=dg.ty-dg.y,d=Math.hypot(dx,dy)
   const st=Math.min(d,sp*dt);dg.x+=dx/d*st;dg.y+=dy/d*st;dg.dist+=st;dg.dir=dx>0?1:-1;return false;}
 function updDogs(dt,h){const bed=dai.mode==='sleep',lively=h>=6&&h<20.5&&wx.rain<.3&&!bed;
   // the two dogs play together now and then
-  if(!play&&lively&&dogs.length>1){playT-=dt;if(playT<=0){if(dogs.every(dg=>dg.y<150&&dg.mode!=='walk'&&dg.mode!=='roll')){play={end:T+14+Math.random()*12,run:Math.random()<.5?0:1,swap:T+3};
+  if(!play&&lively&&dogs.length>1){playT-=dt;if(playT<=0){if(dogs.every(dg=>dg.y<150&&dg.mode!=='walk'&&dg.mode!=='trick'&&!(dg.holdT>0))){play={end:T+14+Math.random()*12,run:Math.random()<.5?0:1,swap:T+3};
       dogs.forEach(dg=>{dg.mode='play';dg.tx=dg.x;dg.ty=dg.y;});}else playT=15;}}
   if(play){if(T>play.end||!lively){play=null;playT=120+Math.random()*200;dogs.forEach(dg=>{dg.mode='sit';dg.t=8+Math.random()*14;});}
     else{const r=dogs[play.run],c=dogs[1-play.run];
@@ -489,8 +498,14 @@ function updDogs(dt,h){const bed=dai.mode==='sleep',lively=h>=6&&h<20.5&&wx.rain
       c.tx=r.x;c.ty=r.y;moveDog(c,21,dt);
       if(T>play.swap&&Math.hypot(r.x-c.x,r.y-c.y)<8){play.run=1-play.run;play.swap=T+2.5+Math.random()*2;const n=dogs[play.run];n.tx=n.x;n.ty=n.y;}}}
   dogs.forEach(dg=>{dg.t-=dt;dg.barkT=Math.max(0,(dg.barkT||0)-dt);dg.happyT=Math.max(0,(dg.happyT||0)-dt);if(dg.mode==='play')return;
-    // tricks after a double tap: lie down, roll onto the back with legs kicking, roll back up and sit
-    if(dg.mode==='roll'){dg.rollT+=dt;if(dg.rollT>=ROLL){dg.mode='sit';dg.t=10+Math.random()*10;dg.happyT=1.5;}return;}
+    dg.holdT=Math.max(0,(dg.holdT||0)-dt);
+    // a trick after a double tap: roll over, spin round, sit up and beg, play bow, or a little bark
+    if(dg.mode==='trick'){dg.tt+=dt;dg.rollT=dg.tt;
+      if(dg.trick==='spin'){const k=Math.floor(dg.tt/.22);if(k!==dg.sp0){dg.sp0=k;dg.dir*=-1;}}
+      if(dg.trick==='bark'&&dg.tt>=dg.nb){dg.nb+=.6;dg.barkT=.45;if(dg.tt>.1)playBark();}
+      if(dg.tt>=TRICKS[dg.trick]){dg.mode='sit';dg.t=10+Math.random()*10;dg.happyT=1.5;dg.holdT=6;}return;}
+    // just tapped: stays put, wagging, for a few seconds (unless it's bedtime)
+    if(dg.holdT>0&&dg.mode==='sit'&&!bed)return;
     if(dg.chT===undefined)dg.chT=40+Math.random()*90;
     // run at the pigeons now and then
     if(lively&&dg.mode!=='walk'&&dg.mode!=='chase'&&dg.y<150){dg.chT-=dt;if(dg.chT<=0){dg.chT=60+Math.random()*120;const gp=pigeons.filter(p=>p.state==='ground');
@@ -507,7 +522,17 @@ function updDogs(dt,h){const bed=dai.mode==='sleep',lively=h>=6&&h<20.5&&wx.rain
 function drawDog(c,dg){const x=Math.round(dg.x),y=Math.round(dg.y),d=dg.dir,{fur,dk,lt,eye}=dg,nose='#111';
   let M=(dx,dy,w,h,col)=>R(c,d>0?x+dx:x-dx-w+1,y+dy,w,h,col);
   const wag=Math.sin(T*(dg.mode==='sleep'?0:dg.happyT>0?24:10))>0?1:0;
-  if(dg.mode==='roll'){const back=rollPose(dg)>.5,k=Math.floor(T*9)%2,rk=Math.round(Math.sin(T*6));
+  if(dg.mode==='trick'&&dg.trick==='spin')return drawDog(c,{...dg,mode:'play',dist:dg.tt*30});
+  if(dg.mode==='trick'&&dg.trick==='bark')return drawDog(c,{...dg,mode:'sit',barkT:dg.barkT>0?.45:0,happyT:1});
+  if(dg.mode==='trick'&&dg.trick==='beg'){const b=Math.round(Math.sin(dg.tt*6)*.6),k=Math.floor(T*6)%2;   // sitting up on its hind legs, paws up
+    M(-4,-5,6,5,fur);M(-4,-1,6,1,dk);M(0,-15+b,4,11,fur);M(1,-13+b,1,8,lt);M(3,-13+b-k,3,1,fur);M(5,-13+b-k,1,1,dk);
+    M(0,-19+b,5,4,fur);M(4,-17+b,2,2,lt);M(5,-17+b,1,1,nose);M(2,-18+b,1,1,eye);M(0,-20+b,2,2,dk);M(-6,-1-wag,3,1,fur);
+    if(fest==='tihar')M(0,-15+b,4,1,'#f08a2a');return;}
+  if(dg.mode==='trick'&&dg.trick==='bow'){const w2=Math.floor(T*14)%2;   // play bow: chest down, tail up and wagging
+    M(-6,-10,5,4,fur);M(-6,-6,1,6,fur);M(-3,-6,1,6,dk);M(-2,-8,5,3,fur);M(2,-6,4,3,fur);M(-1,-6,6,1,lt);
+    M(3,-2,7,1,fur);M(3,-1,7,1,dk);M(6,-7,4,4,fur);M(9,-5,2,2,lt);M(10,-5,1,1,nose);M(7,-6,1,1,eye);M(6,-8,2,1,dk);
+    M(-8,-13+w2,2,3,fur);M(-9,-14+w2,1,2,fur);if(fest==='tihar')M(5,-6,1,3,'#f08a2a');return;}
+  if(dg.mode==='trick'&&dg.trick==='roll'){const back=rollPose(dg)>.5,k=Math.floor(T*9)%2,rk=Math.round(Math.sin(T*6));
     if(!back){M(-6,-4,12,3,fur);M(-6,-1,12,1,dk);M(4,-5,4,3,fur);M(5,-6,2,1,dk);M(8,-4,1,1,nose);M(6,-4,1,1,eye);M(-8,-3-wag,2,1,fur);return;}
     // on its back: belly up, paws kicking, tongue out
     M(-5+rk,-5,11,3,fur);M(-4+rk,-6,9,1,lt);M(-5+rk,-2,11,1,dk);
@@ -577,11 +602,11 @@ function drawCustomer(c){if(place!=='ktm'||!shopOpen())return;const x=300,y=113,
 
 const GX=50;let radioOn=false;
 function curTempo(){const s=station();return s.tempo||MOODS[curMood].tempo;}
-/* The dai's day (Nepal time): sleeps 9:30 PM-6 AM; 10-minute breaks at 6 AM (brush), 11 AM (lunch), 4 PM,
+/* The dai's day (Nepal time): sleeps 9 PM-6 AM (the dogs sleep beside him then too); 10-minute breaks at 6 AM (brush), 11 AM (lunch), 4 PM,
    coming back each time with a fresh clay cup of tea. Cups pile up through the day and sit empty overnight. */
 const BRK=[6,11,16],BL=10/60;
 let dai={mode:'sit',cups:1,fresh:false,left:0},daiPrev=null,daiRet=false,zs=[],zT=0;
-function daiPlan(h){let mode='sit';if(h>=21.5||h<6)mode='sleep';
+function daiPlan(h){let mode='sit';if(dogNight(h))mode='sleep';
   const brk=BRK.find(b=>h>=b&&h<b+BL);if(brk!==undefined)mode='away';
   const done=BRK.filter(b=>h>=b+BL),cups=h<6?3:done.length,lastRet=done.length?done[done.length-1]+BL:null;
   return{mode,cups,fresh:lastRet!==null&&mode==='sit'&&h-lastRet<2/3,left:brk!==undefined?(brk+BL-h)*3600:0,read:h<11?'paper':'book'};}
@@ -789,6 +814,7 @@ function drawStaticS0(){staticDirty=false;sSeed=7;
   [bgX,fgX].forEach(c=>{c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,bgS.width,bgS.height);c.setTransform(K,0,0,K,0,0);});
   C=bgX;
   sGround();
+  if(place==='ktm')ktmBackHouses(DS);
   if(place==='patan'){patanStatic(DS);C=fgX;C.save();C.transform(-1,0,0,1,320,0);sFG();C.restore();return;}
   if(place==='bkt'){bktStatic(DS);C=fgX;C.save();C.transform(-1,0,0,1,320,0);sFG();C.restore();return;}
   // left building with the clay pot shop
@@ -863,6 +889,7 @@ function sWalker(w){if(w.type==='cyclist')return sCyclist(w);
   if(wo&&!ch){C.beginPath();C.moveTo(-2.6,-12.7+bob);C.lineTo(2.5,-12.7+bob);C.lineTo(3.2,-3.6);C.lineTo(-3.1,-3.6);C.closePath();sF(w.shirt);
     sP([1,-12.6+bob,2.5,-12.6+bob,-1.6,-4.4,-3,-4.8],w.shirt2,0);}
   else{sR(-2.6,-12.7+bob,5.2,8,1.5,w.shirt);if(!ch)sB(-2.4,-5.4,4.8,.7,w.shirtD);}
+  if(w.jacket){sL(-2.4,-10+bob,2.4,-10+bob,w.shirtD,.35);sL(-2.4,-7.8+bob,2.4,-7.8+bob,w.shirtD,.35);sR(-2,-13.6+bob,4,1.4,.6,w.shirt,0);}
   sR(-.65,-13.8+bob,1.3,1.5,.4,w.skin,0);
   const hy=-15.4+bob;sHead(.3,hy,2.3,w.skin,w.hair);
   if(wo)sR(-2.8,hy-.8,1.3,6.4,.65,w.hair,0);
@@ -930,7 +957,22 @@ function sPigeon(p){const d=p.dir;C.save();C.translate(p.x,p.y);C.scale(d,1);
   C.restore();}
 function sGarland(x,y,n){for(let i=0;i<n;i++)sC(x+i*.9,y+Math.sin(i)*.3,.55,i%2?'#f2c230':'#f08a2a',0);}
 function sDog(dg){const d=dg.dir,{fur,dk,lt,eye}=dg,ti=fest==='tihar';C.save();C.translate(dg.x,dg.y);C.scale(d,1);
-  if(dg.mode==='roll'){const p=rollPose(dg),wg=Math.sin(T*24)*.9;C.translate(Math.sin(T*6)*.6,0);
+  if(dg.mode==='trick'&&dg.trick==='spin'){C.restore();return sDog({...dg,mode:'play',dist:dg.tt*30});}
+  if(dg.mode==='trick'&&dg.trick==='bark'){C.restore();return sDog({...dg,mode:'sit',barkT:dg.barkT>0?.45:0,happyT:1});}
+  if(dg.mode==='trick'&&dg.trick==='beg'){const b=Math.sin(dg.tt*6)*.5,pw=Math.sin(T*9)*.5,wg=Math.sin(T*24)*.9;
+    sStroke([-4,-.8,-6.6,-1+wg*.6],fur,1.1);sE(-1.6,-2.8,3.2,2.8,fur);
+    C.save();C.translate(0,b);sR(-.4,-15,4.2,12,2,fur);sR(.6,-13,1.8,8.4,.9,lt,0);
+    sStroke([3.2,-12.4,5.4,-13.4+pw],fur,1.2);sStroke([3,-10.6,5.2,-11.4-pw],dk,1.1);
+    sE(2.4,-17,2.6,2.3,fur);sE(4.8,-16.4,1.6,1.1,lt,0);sC(6.1,-16.6,.45,'#111',0);sC(3.2,-17.8,.36,eye,0);sP([.2,-18.2,2,-19.6,1.4,-16.2],dk,0);
+    if(ti)sGarland(.6,-14.6,4);C.restore();C.restore();return;}
+  if(dg.mode==='trick'&&dg.trick==='bow'){const wg=Math.sin(T*24)*.9;
+    sStroke([-5.6,-9.8,-7.2,-13.4+wg*.5],fur,1.15);
+    C.save();C.translate(-5,-5.4);C.rotate(-.1);sR(-.6,0,1.3,5.4,.6,dk);C.restore();C.save();C.translate(-3,-5.4);sR(-.6,0,1.3,5.4,.6,fur);C.restore();
+    C.save();C.translate(-.6,-7);C.rotate(.32);sE(0,0,6,2.4,fur);sE(0,1,4.4,.9,lt,0);C.restore();
+    sStroke([3.6,-2.2,9.6,-1],dk,1.2);sStroke([3,-1.2,9,-.2],fur,1.2);
+    sE(7.6,-5.4,2.5,2.1,fur);sE(9.7,-4.6,1.5,1,lt,0);sC(11,-4.8,.45,'#111',0);sC(8.2,-6,.36,eye,0);sP([6,-7,7.6,-8.2,7.2,-5.4],dk,0);
+    if(ti)sGarland(4.6,-4.4,3);C.restore();return;}
+  if(dg.mode==='trick'&&dg.trick==='roll'){const p=rollPose(dg),wg=Math.sin(T*24)*.9;C.translate(Math.sin(T*6)*.6,0);
     if(p<.5){sE(-5.2,-1,2.6,.9,fur,0);sE(-.6,-2.4,6,2.4,fur);sE(-.6,-1.2,5,.9,dk,0);sE(4.6,-2.4,2.6,1.9,fur);sE(6.7,-2,1.3,.9,lt,0);sC(7.8,-2.1,.42,'#111',0);
       sC(5.4,-3,.36,eye,0);sP([3.4,-3.6,5.2,-4.4,4.8,-2.4],dk,0);sStroke([-6,-1.6,-8.2,-2.4+wg*.4],fur,1);C.restore();return;}
     // on its back: belly up, paws kicking, tongue out
@@ -1198,6 +1240,11 @@ function bellHouse(D){
   [67,99].forEach(x=>{D.win(x,76,8,7,true);D.win(x,92,8,7,true);});D.rect(64,88,44,1.4,'#4a2a1c');
   D.rect(66,104,7,14,'#3a2214');D.rect(65.4,103,8.2,1,'#4a2c1a');}
 
+/* --- Kathmandu: small Newari houses on both sides of the pagoda, kept low so the mountains still show --- */
+function ktmBackHouses(D){
+  [[108,93,13],[119,97,15],[186,96,14],[198,91,16]].forEach(([x,y,w],i)=>{const col=i%2?'#a85f45':'#a2583f';D.rect(x,y,w,118-y,col);
+    D.poly([x-2,y,x+w+2,y,x+w-1,y-3.4,x+1,y-3.4],'#6e3e2c');D.rect(x-2,y,w+4,.8,'#4a2a1c');
+    for(let wy=y+3;wy<114;wy+=8)for(let wx=x+3;wx<x+w-3;wx+=6)D.rect(wx,wy,3,4,'#4e2c1e');});}
 /* --- a pagoda behind the square --- */
 function pagodaP(D){const cx=166;
   for(let i=0;i<5;i++){const w=64-i*8,y=114-i*4;D.rect(cx-w/2,y,w,4,'#a9533a',1);D.rect(cx-w/2,y,w,1,'#c9765a');D.rect(cx-w/2,y+3,w,1,'#7e3a27');}
@@ -1251,6 +1298,7 @@ function patanStatic(D){bellHouse(D);pAt(D,PX.pagoda,pagodaP);patanShopsBG(D);pA
   {const c=D.px?D.c:C;c.save();c.translate(199,0);c.scale(-1,1);garudaPillar(D);c.restore();}
   pAt(D,PX.bell,taleju);pAt(D,PX.spout,hiti);patanLamps(D);}
 // pixel version: built once into its own background, the foreground steps are the Kathmandu ones mirrored
+buildBG();   // Kathmandu pixel background (needs the drawing helpers above)
 (function buildPatanPx(){const keep=winGlow;winGlow=glowP;pxGround(bP);DP.c=bP;patanStatic(DP);winGlow=keep;
   fP.save();fP.setTransform(-1,0,0,1,W,0);fP.drawImage(fgC,0,0);fP.restore();})();
 
@@ -1790,14 +1838,16 @@ addEventListener('keydown',e=>{if(!about.hidden||e.target.tagName==="INPUT")retu
 /* ---------- tap a dog: wakes it up (not at night), double tap: it rolls over ---------- */
 const sceneEl=document.getElementById('scene');let lastTap={dg:null,t:0};
 function scenePt(e){const r=(style==='pixel'?cv:cv2).getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H];}
-function dogAt(e){const[sx,sy]=scenePt(e);return dogs.find(dg=>Math.abs(sx-dg.x)<11&&sy>dg.y-16&&sy<dg.y+3);}
-function tapDog(dg){const h=hourNow(),now=performance.now(),dbl=lastTap.dg===dg&&now-lastTap.t<450;lastTap={dg,t:now};
-  if(h>=20.5||h<6)return;   // fast asleep for the night
+// a generous tap area, and the nearest dog wins
+function dogAt(e){const[sx,sy]=scenePt(e);let best=null,bd=1e9;dogs.forEach(dg=>{const dx=sx-dg.x,dy=sy-(dg.y-6);if(Math.abs(dx)<15&&dy>-14&&dy<10){const d=dx*dx+dy*dy;if(d<bd){bd=d;best=dg;}}});return best;}
+function tapDog(dg){const h=hourNow(),now=performance.now(),dbl=lastTap.dg===dg&&now-lastTap.t<520;lastTap={dg,t:dbl?0:now};
+  if(dogNight(h))return;   // fast asleep for the night (9 PM - 6 AM)
   if(play){play=null;playT=60+Math.random()*60;dogs.forEach(o=>{if(o.mode==='play'){o.mode='sit';o.t=8;}});}
-  if(dg.mode==='roll')return;
-  if(dbl){dg.mode='roll';dg.rollT=0;dg.happyT=0;return;}
+  if(dg.mode==='trick')return;
+  dg.holdT=8;dg.tx=dg.x;dg.ty=dg.y;
+  if(dbl){const opts=Object.keys(TRICKS).filter(t=>t!==dg.lastTrick);dg.trick=pick(opts);dg.lastTrick=dg.trick;dg.mode='trick';dg.tt=0;dg.rollT=0;dg.sp0=0;dg.nb=0;dg.happyT=0;return;}
   if(dg.mode==='sleep'){dg.mode='sit';dg.t=12+Math.random()*10;dg.happyT=1.6;if(Math.random()<.5){dg.barkT=.9;playBark();}return;}
-  dg.mode='sit';dg.t=10+Math.random()*8;dg.happyT=1.6;dg.tx=dg.x;dg.ty=dg.y;}
+  dg.mode='sit';dg.t=10+Math.random()*8;dg.happyT=1.6;}
 sceneEl.addEventListener('click',e=>{const dg=dogAt(e);if(dg)tapDog(dg);});
 if(canHover)sceneEl.addEventListener('pointermove',e=>{sceneEl.style.cursor=dogAt(e)?'pointer':'';});
 
