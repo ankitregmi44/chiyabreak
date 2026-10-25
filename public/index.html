@@ -147,7 +147,7 @@ body.portrait .rotate{display:block}
 
 <div class="dock ui">
   <button class="power" id="power" type="button" aria-pressed="false" aria-label="Turn on the radio"><span class="pw-i" aria-hidden="true">▶</span><span class="pw-t">Turn on the radio</span></button>
-  <button class="ghost plate station" id="station" type="button"><span class="st-name">Madal &amp; flute</span><span class="st-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span></button>
+  <button class="ghost plate station" id="station" type="button"><span class="st-name">Madal &amp; flute</span><span class="st-dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span></button>
 </div>
 
 <footer class="copy ui"><span>© 2026 AR</span><span aria-hidden="true">·</span><button type="button" class="linkbtn" id="aboutBtn" aria-haspopup="dialog">About</button></footer>
@@ -280,7 +280,8 @@ const WXL={clear:'Clear',cloudy:'Cloudy',rain:'Rain',fog:'Fog'};
 const wx={cloud:.1,rain:0,fog:0};
 const load=(k,d)=>{try{return localStorage.getItem(k)||d;}catch(e){return d;}},save=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
 /* radio stations: the first is played live by the browser, the other two are recorded songs */
-const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & madal',src:'/music/sarangi-madal.mp3?v=2',tempo:60},{id:'harmonium',name:'Harmonium chill',src:'/music/harmonium-chill.mp3',tempo:65}];
+const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & madal',src:'/music/sarangi-madal.mp3?v=2',tempo:60},{id:'harmonium',name:'Harmonium chill',src:'/music/harmonium-chill.mp3',tempo:65},
+  {id:'newa',name:'Newa Lofi',gen:'newa',tempo:72},{id:'mithila',name:'Mithila',gen:'mithila',tempo:84}];   // the last two are composed live by the browser too
 const st={wx:'auto',tm:'live',amb:'off',station:load('cb.station','flute')};
 if(!STATIONS.some(x=>x.id===st.station))st.station='flute';
 const station=()=>STATIONS.find(x=>x.id===st.station);
@@ -1752,12 +1753,47 @@ function playStep(n,t){const m=MOODS[curMood],sd=60/m.tempo/2,s8=n%8,bar=n/8|0;
     if(s8===6&&bar%2===1){melIdx=Math.random()<.5?0:5;fnote(t,melIdx,sd*3,m);}
     else if(Math.random()<p){melIdx=clamp(melIdx+pick([-2,-1,-1,0,1,1,2]),0,7);fnote(t,melIdx,sd*(1+(Math.random()*3|0)),m);}}
   if(s8===0&&bar%8===0&&Math.random()<m.bell)bell(t+sd*.5,m.root*2);}
-function tickAudio(){if(AC.state!=='running')return;const ahead=document.hidden?1.6:.15;if(nextT<AC.currentTime-.3)nextT=AC.currentTime+.05;while(nextT<AC.currentTime+ahead){playStep(stepN,nextT);nextT+=60/MOODS[curMood].tempo/2;stepN++;}
-  if(MOODS[curMood].birds&&Math.random()<.008)chirp(AC.currentTime+.05);}
+function tickAudio(){if(AC.state!=='running')return;const ahead=document.hidden?1.6:.15,s=station(),gen=s.gen||'flute',tempo=gen==='flute'?MOODS[curMood].tempo:s.tempo,step=gen==='newa'?newaStep:gen==='mithila'?mithilaStep:playStep;
+  if(nextT<AC.currentTime-.3)nextT=AC.currentTime+.05;while(nextT<AC.currentTime+ahead){step(stepN,nextT,60/tempo/2);nextT+=60/tempo/2;stepN++;}
+  if(gen==='flute'&&MOODS[curMood].birds&&Math.random()<.008)chirp(AC.currentTime+.05);}
+
+/* ---------- Newa Lofi: dhime drum beat with bhusya cymbal ticks, mellow electric piano, soft bass and a sparse bansuri, with vinyl crackle ---------- */
+let crackG=null;
+function vinyl(on){if(!AC)return;if(!crackG){const n=AC.createBufferSource();n.buffer=noise;n.loop=true;const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=3000;crackG=AC.createGain();crackG.gain.value=0;n.connect(hp);hp.connect(crackG);crackG.connect(mus);n.start();}
+  crackG.gain.setTargetAtTime(on?.01:0,AC.currentTime,.3);}
+function crackle(t,sd){for(let i=0;i<3;i++)if(Math.random()<.35)burst(t+Math.random()*sd,2500+Math.random()*4000,3,.006,.06,mus);}
+function epiano(t,fq,dur,v){const o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),g2=AC.createGain(),lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1500;
+  o.frequency.value=fq;o2.frequency.value=fq*2.002;g2.gain.value=.2;o2.connect(g2);g2.connect(g);o.connect(g);g.connect(lp);lp.connect(mus);lp.connect(send);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(v*.35,t+.5);g.gain.exponentialRampToValueAtTime(.0001,t+dur);[o,o2].forEach(x=>{x.start(t);x.stop(t+dur+.05);});}
+function dhime(t,v,low){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(low?105:200,t);o.frequency.exponentialRampToValueAtTime(low?50:125,t+.22);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+(low?.55:.2));o.connect(g);g.connect(mus);o.start(t);o.stop(t+.6);slap(t,v*.14,low?800:1900,.04);}
+const cym=(t,v,dec=.06)=>burst(t,7600,.7,dec,v,mus);
+const NEWA_CH=[[0,4,7,11],[-3,0,4,7],[5,9,12,16],[2,5,9,12]],NEWA_SC=[0,2,4,7,9];let newaMel=5;
+function newaStep(n,t,sd){const s8=n%8,bar=n/8|0,sw=s8%2?sd*.14:0,tt=t+sw,root=146.83,ch=NEWA_CH[bar%4];
+  if(s8===0){ch.forEach(k=>epiano(t,root*Math.pow(2,k/12),sd*7.5,.045));tone(t,'sine',root/2*Math.pow(2,ch[0]/12),root/2*Math.pow(2,ch[0]/12),sd*3.5,.13,mus);}
+  if(s8===3)ch.slice(1).forEach(k=>epiano(tt,root*2*Math.pow(2,k/12),sd*2,.02));
+  if(s8===5)tone(tt,'sine',root/2*Math.pow(2,ch[0]/12)*1.5,root/2*Math.pow(2,ch[0]/12)*1.5,sd*2,.08,mus);
+  if(s8===0)dhime(t,.55,true);if(s8===3)dhime(tt,.3,false);if(s8===4)dhime(t,.36,true);if(s8===6)dhime(t,.32,false);if(s8===7&&bar%2)dhime(tt,.16,false);
+  if(s8%2)cym(tt,.016);if(s8===0&&bar%4===0)cym(t,.03,.5);
+  if(bar%4===1||bar%4===2){if(t>=busy&&s8%2===0&&Math.random()<.5){newaMel=clamp(newaMel+pick([-2,-1,1,1,2]),0,9);const fq=587.33*Math.pow(2,(NEWA_SC[newaMel%5]+12*(newaMel/5|0))/12),d=sd*(1+(Math.random()*3|0));flute(t,fq/2,d*.95,.11);busy=t+d;}}
+  crackle(t,sd);}
+
+/* ---------- Mithila: a swaying 6/8 dadra on dholak with jhaal, warm harmonium chords and a soft reedy melody in a folk (Khamaj) scale ---------- */
+function reed(t,fq,dur,v,vib){const o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),g2=AC.createGain(),lp=AC.createBiquadFilter();o.type='sawtooth';o2.type='square';
+  o.frequency.value=fq;o2.frequency.value=fq*1.004;lp.type='lowpass';lp.frequency.value=vib?1800:1100;lp.Q.value=1.4;g2.gain.value=.35;o2.connect(g2);g2.connect(g);o.connect(g);g.connect(lp);lp.connect(mus);lp.connect(send);
+  const xs=[o,o2];if(vib){const l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=5.4;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(fq*.012,t+Math.min(.45,dur));l.connect(lg);lg.connect(o.frequency);lg.connect(o2.frequency);xs.push(l);}
+  env(g,t,vib?.07:.35,v,vib?.25:.6,dur);xs.forEach(x=>{x.start(t);x.stop(t+dur+.7);});}
+const MITH_CH=[[0,4,7],[5,9,12],[0,4,7],[7,10,14]],MITH_SC=[0,2,4,5,7,9,10];let mithMel=7;
+function mithilaStep(n,t,sd){const s6=n%6,bar=n/6|0,root=261.63;
+  if(s6===0&&bar%2===0){const ch=MITH_CH[(bar/2|0)%4];ch.forEach(k=>reed(t,root/2*Math.pow(2,k/12),sd*11.6,.022,false));}
+  if(s6===0){dhin(t,.42);cym(t,.03,.14);}if(s6===1)slap(t,.07,2600,.05);if(s6===2)ta(t,.2);if(s6===3){dhin(t,.26);cym(t,.02,.1);}if(s6===4)ta(t,.17);if(s6===5&&Math.random()<.7)slap(t,.06,3000,.05);
+  if(bar%4!==3&&t>=busy&&(s6===0||s6===2||s6===3||s6===5)&&Math.random()<.55){mithMel=clamp(mithMel+pick([-2,-1,-1,1,1,2]),2,12);
+    const k=MITH_SC[mithMel%7]+12*(mithMel/7|0),d=sd*(1+(Math.random()*4|0));reed(t,root*Math.pow(2,(k-12)/12)*2,d*.95,.035,true);busy=t+d;}
+  crackle(t,sd);}
 /* recorded stations play through an <audio> element routed into the same volume control */
 let trackEl=null,fileG=null,tuning=false;
 function startStation(){const s=station();tuning=false;hudT=0;
-  if(!s.src){mus.gain.cancelScheduledValues(AC.currentTime);mus.gain.setTargetAtTime(.8,AC.currentTime,.05);nextT=AC.currentTime+.08;busy=0;clearInterval(sched);sched=setInterval(tickAudio,25);}
+  if(!s.src){mus.gain.cancelScheduledValues(AC.currentTime);mus.gain.setTargetAtTime(s.gen?1.35:.8,AC.currentTime,.05);nextT=AC.currentTime+.08;busy=0;stepN=0;vinyl(!!s.gen);clearInterval(sched);sched=setInterval(tickAudio,25);}
   else{if(!trackEl){trackEl=new Audio();trackEl.loop=true;trackEl.preload='auto';trackEl.setAttribute('playsinline','');
       trackEl.addEventListener('playing',()=>{tuning=false;hudT=0;});trackEl.addEventListener('waiting',()=>{tuning=true;hudT=0;});
       trackEl.addEventListener('error',()=>{tuning='err';hudT=0;});
@@ -1766,7 +1802,7 @@ function startStation(){const s=station();tuning=false;hudT=0;
     fileG.gain.cancelScheduledValues(AC.currentTime);fileG.gain.setTargetAtTime(1,AC.currentTime,.25);
     const p=trackEl.play();if(p&&p.catch)p.catch(()=>{tuning='err';hudT=0;});}
   if('mediaSession' in navigator&&window.MediaMetadata){try{navigator.mediaSession.metadata=new MediaMetadata({title:s.name,artist:'Chiya Break · चिया ब्रेक',artwork:[{src:'/apple-touch-icon.png',sizes:'180x180',type:'image/png'}]});}catch(e){}}}
-function stopStation(){clearInterval(sched);if(!AC)return;mus.gain.cancelScheduledValues(AC.currentTime);mus.gain.setTargetAtTime(0,AC.currentTime,.05);
+function stopStation(){clearInterval(sched);if(!AC)return;vinyl(false);mus.gain.cancelScheduledValues(AC.currentTime);mus.gain.setTargetAtTime(0,AC.currentTime,.05);
   if(trackEl){trackEl.pause();fileG.gain.cancelScheduledValues(AC.currentTime);fileG.gain.setTargetAtTime(0,AC.currentTime,.02);}}
 const stBtn=document.getElementById('station');
 function setStationUI(){const s=station(),i=STATIONS.indexOf(s);stBtn.querySelector('.st-name').textContent=s.name;

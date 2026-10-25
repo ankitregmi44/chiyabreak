@@ -1,6 +1,6 @@
 # Chiya Break — chiyabreak.com
 
-Durbar Square scenes of Kathmandu, Patan (Lalitpur) and Bhaktapur in five art styles (Lofi, Pixel, Flat, Mithila, Watercolour) with three slow Nepali radio stations. © 2026 AR.
+Durbar Square scenes of Kathmandu, Patan (Lalitpur) and Bhaktapur in five art styles (Lofi, Pixel, Flat, Mithila, Watercolour) with five slow Nepali radio stations. © 2026 AR.
 
 Move between the squares with the arrows on the left and right edges (they appear when the mouse comes near a side; always shown on phones), or the ← → keys.
 Tap a street dog to wake it (not 9 PM–6 AM, when the dogs sleep beside the dai/didi/baje); double-tap for a random trick: roll over, spin, sit up and beg, play bow, or a little bark.
@@ -13,7 +13,7 @@ Shops (momo, chiya, clay pots in Kathmandu, statues in Patan, juju dhau in Bhakt
 - `public/index.html` — the whole website (scene, music, controls). Edit this to change the site.
   The pixel style draws into a small 320×180 canvas; Lofi and Flat draw the same scene with smooth shapes on a sharp canvas (search for "Lofi & Flat art styles").
   Patan is drawn once for all styles (search for "Patan (Lalitpur) Durbar Square"); new squares are added to `PL` and `PLACE_ORDER`.
-- `public/music/` — the recorded radio stations (sarangi & madal, harmonium chill). The madal & flute station is played live by the browser.
+- `public/music/` — the recorded radio stations (sarangi & madal, harmonium chill). The madal & flute, Newa Lofi and Mithila stations are composed live by the browser (search for "Newa Lofi" / "Mithila:" in index.html).
 - `public/favicon.svg`, `public/*.png` — the clay tea cup icon.
 - `worker/index.js` — the visitor counter shown at the top right (`/api/views`).
 - `wrangler.jsonc`, `package.json` — settings for Cloudflare. Leave these as they are.
