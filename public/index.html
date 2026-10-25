@@ -290,7 +290,7 @@ const load=(k,d)=>{try{return localStorage.getItem(k)||d;}catch(e){return d;}},s
 const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & madal',src:'/music/sarangi-madal.mp3?v=2',tempo:60},{id:'harmonium',name:'Harmonium chill',src:'/music/harmonium-chill.mp3',tempo:65},
   {id:'newa',name:'Newa Lofi',gen:'newa',tempo:72},{id:'mithila',name:'Mithila',gen:'mithila',tempo:84,drone:261.63},
   {id:'dohori',name:'Funky Tune',gen:'dohori',tempo:84,gain:.95},{id:'sitar',name:'Sitar',gen:'sitar',tempo:64,drone:146.83,gain:1.9},
-  {id:'guitar',name:'Rainy Guitar',gen:'guitar',tempo:66,gain:1.75},{id:'pop',name:'90s Pop',gen:'pop',tempo:92,gain:1.05},
+  {id:'guitar',name:'Rainy Guitar',gen:'guitar',tempo:72,gain:1.75},{id:'pop',name:'90s Pop',gen:'pop',tempo:92,gain:1.05},
   {id:'folkrock',name:'Folk Rock',gen:'folkrock',tempo:96,gain:1.15}];   // the last two are composed live by the browser too
 const st={wx:'auto',tm:'live',amb:'off',station:load('cb.station','flute')};
 if(!STATIONS.some(x=>x.id===st.station))st.station='flute';
@@ -1910,16 +1910,36 @@ function sitarStep(n,t,sd){const s8=n%8,bar=n/8|0,ph=bar%8,R=SIT.root;
   if(s8===0&&bar%8===0)bell(t+.2,R*4,.25);}
 
 /* 3. Rainy Guitar: soft fingerpicking in a calm minor key, a gentle piano melody now and then, and little drip notes like rain off the roof */
-const GTR=[[57,60,64,69],[53,57,60,65],[48,55,60,64],[55,59,62,67]],GPAT=[0,2,1,3,0,2,3,1],midi=m=>440*Math.pow(2,(m-69)/12);let gMel=4;
-function guitarStep(n,t,sd){const s8=n%8,bar=n/8|0,ch=GTR[bar%4],sw=s8%2?sd*.08:0;
-  // a slow, soft lofi beat: a gentle kick on 1 and the 'and' of 3, a soft brush on 2 and 4 (no high ticks)
-  if(s8===0||(s8===5&&bar%2===0))kick(t+(s8===5?sw:0),.24);if(s8===2||s8===6){burst(t,700,.6,.2,.03,mus);tone(t,'triangle',170,120,.08,.012,mus);}
-  // mellow fingerpicking: an octave lower, warm and round like a nylon-string guitar played softly
-  const i=GPAT[s8];pluck(t+sw,midi(ch[i]-(i===0?24:12)),{dur:2.8,v:i===0?.36:.26,bright:.16,damp:.9968,lp:1100});
-  if(s8===0&&bar%2===0)strings(t,[midi(ch[0]-12),midi(ch[2]-12)],sd*15,.01);
-  // now and then, a soft low piano melody
-  if(bar%4>=2&&t>=busy&&(s8===0||s8===3||s8===6)&&Math.random()<.45){gMel=walk(gMel,0,7);const k=[0,3,5,7,10][gMel%5]+12*(gMel/5|0);epiano(t,midi(57+k),sd*4,.026);busy=t+sd*3;}
-  if(Math.random()<.03)tone(t+Math.random()*sd,'sine',820+Math.random()*260,620,.1,.008,mus);}
+/* 3. Rainy Guitar — a soft acoustic lofi track: fingerpicked guitar over jazzy chords (Fmaj9, Em9, Dm9, Cmaj9),
+   a very soft felt piano, a muffled lazy beat, warm bass and a gentle tape wobble. No noise, nothing sharp. */
+const midi=m=>440*Math.pow(2,(m-69)/12);
+const LOFI=[{b:41,v:[53,57,60,64,67]},{b:40,v:[52,55,59,62,66]},{b:38,v:[50,53,57,60,64]},{b:36,v:[48,52,55,59,62]}],LPAT=[0,2,1,3,4,3,2,1],LMEL=[64,67,69,72,74,76];
+let wobG=null,lMel=2;
+function wob(p){if(!wobG){const o=AC.createOscillator();o.frequency.value=.42;wobG=AC.createGain();wobG.gain.value=7;o.connect(wobG);o.start();}wobG.connect(p);}   // tape wobble, in cents
+function aguitar(t,fq,v){const sr=AC.sampleRate,N=Math.max(2,Math.floor(sr/fq)),s=AC.createBufferSource();s.buffer=ksBuf(fq,3,.22,.9975);s.playbackRate.value=fq/(sr/N);wob(s.detune);
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1700;lp.Q.value=.4;const body=AC.createBiquadFilter();body.type='peaking';body.frequency.value=210;body.gain.value=4;body.Q.value=.9;
+  const g=AC.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.006);s.connect(lp);lp.connect(body);body.connect(g);g.connect(mus);s.start(t);s.stop(t+3);}
+function fpiano(t,fq,dur,v){const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1250;const g=AC.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(v*.3,t+.6);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  lp.connect(g);g.connect(mus);const sd2=AC.createGain();sd2.gain.value=.35;g.connect(sd2);sd2.connect(send);
+  [[1,1,'sine'],[2,.18,'sine'],[1.002,.25,'triangle']].forEach(([k,a,type])=>{const o=AC.createOscillator(),og=AC.createGain();o.type=type;o.frequency.value=fq*k;og.gain.value=a;wob(o.detune);o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur+.05);});}
+function lkick(t,v){const o=AC.createOscillator(),g=AC.createGain(),lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=260;o.frequency.setValueAtTime(92,t);o.frequency.exponentialRampToValueAtTime(46,t+.14);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.42);o.connect(lp);lp.connect(g);g.connect(mus);o.start(t);o.stop(t+.45);}
+function lsnare(t,v){burst(t,850,.8,.16,v,mus);const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.setValueAtTime(185,t);o.frequency.exponentialRampToValueAtTime(140,t+.06);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v*.35,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.08);o.connect(g);g.connect(mus);o.start(t);o.stop(t+.1);}
+function lbass(t,fq,dur,v){const o=AC.createOscillator(),g=AC.createGain(),lp=AC.createBiquadFilter();o.type='sine';o.frequency.value=fq;lp.type='lowpass';lp.frequency.value=380;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.03);g.gain.exponentialRampToValueAtTime(v*.5,t+.35);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(lp);lp.connect(g);g.connect(mus);o.start(t);o.stop(t+dur+.05);}
+function guitarStep(n,t,sd){const s8=n%8,bar=n/8|0,c=LOFI[bar%4],sw=s8%2?sd*.16:0,tt=t+sw;
+  // the beat: muffled kick on 1 and the 'and' of 3, soft brush on 2 and 4, a faint swung shaker
+  if(s8===0||s8===5||(s8===7&&bar%4===3))lkick(tt,s8===0?.36:.26);
+  if(s8===2||s8===6)lsnare(t,.032);
+  if(s8%2)burst(tt,3000,1.2,.035,.0022,mus);
+  // warm bass on the root, walking to the fifth
+  if(s8===0)lbass(t,midi(c.b),sd*3.4,.2);if(s8===5)lbass(tt,midi(c.b+7),sd*2.2,.13);
+  // fingerpicked acoustic guitar
+  const k=LPAT[s8];aguitar(tt,midi(c.v[k]),k===0?.26:.19);
+  // very soft felt piano: a quiet chord now and then, and a few gentle melody notes in the second half of the loop
+  if(s8===0&&bar%2===1)c.v.slice(1,4).forEach((m,i)=>fpiano(t+i*.02,midi(m+12),sd*7,.012));
+  if(bar%4>=2&&t>=busy&&(s8===1||s8===4||s8===6)&&Math.random()<.5){lMel=clamp(lMel+pick([-1,-1,1,1,2,-2]),0,LMEL.length-1);fpiano(tt,midi(LMEL[lMel]),sd*5,.022);busy=t+sd*2.5;}}
 /* 4. 90s Pop: an easy, happy Nepali keyboard-pop feel — soft drums, bass, electric piano, strings and a catchy synth melody */
 const POP={root:196,ch:[[0,4,7],[7,11,14],[9,12,16],[5,9,12]],sc:[0,2,4,7,9],rhy:[[0,2],[2,1],[3,1],[4,2],[6,2]]};let popMot=null,popSec=-1;
 function popMotif(){let i=5;return POP.rhy.map(()=>{i=walk(i,2,10);return i;});}
