@@ -1,9 +1,10 @@
 # Chiya Break — chiyabreak.com
 
-Durbar Square scenes of Kathmandu and Patan (Lalitpur) in three art styles (Pixel, Lofi, Flat) with three slow Nepali radio stations. © 2026 AR.
+Durbar Square scenes of Kathmandu and Patan (Lalitpur) in five art styles (Lofi, Pixel, Flat, Mithila, Watercolour) with three slow Nepali radio stations. © 2026 AR.
 
 Move between the squares with the arrows on the left and right edges (they appear when the mouse comes near a side; always shown on phones), or the ← → keys.
 Tap a street dog to wake it (not at night); double-tap and it rolls over.
+The scene always follows live Nepal time. Settings (bottom left): style, weather, volume and street sounds.
 
 Shops (momo, chiya, clay pots in Kathmandu, statues in Patan) are open 8 AM–10 PM Nepal time. "Auto" weather and the temperature come from live Kathmandu weather (Open-Meteo).
 
