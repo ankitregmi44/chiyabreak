@@ -184,7 +184,7 @@ const GL={' ':['00','00','00','00','00'],P:['110','101','110','100','100'],V:['1
 function ptext(c,s,x,y,col){for(const ch of s){const gl=GL[ch];if(gl)gl.forEach((row,ry)=>[...row].forEach((v,rx)=>{if(v==='1')R(c,x+rx,y+ry,1,1,col);}));x+=(gl?gl[0].length:3)+1;}}
 
 /* ---------- static background ---------- */
-const glowK=[],glowP=[],lampsK=[{x:99,y:104},{x:223,y:104}],lampsP=[{x:112,y:104},{x:201,y:104}],CX=160;
+const glowK=[],glowP=[],lampsK=[{x:111,y:104},{x:209,y:104}],lampsP=[{x:119,y:104},{x:195,y:104}],CX=160;   // street lamps stand at the temple plinths
 let winGlow=glowK,lamps=lampsK;
 function brickWall(c,x,y,w,h,base,seam){R(c,x,y,w,h,base);for(let yy=y+2;yy<y+h;yy+=3){R(c,x,yy,w,1,seam);const off=((yy-y)/3|0)%2?3:0;for(let xx=x+off;xx<x+w;xx+=6)R(c,xx,yy-2,1,2,seam);}
   for(let i=0;i<w*h/45;i++)R(c,x+rnd()*(w-2),y+rnd()*(h-1),2,1,rnd()<.5?'rgba(255,220,190,.09)':'rgba(0,0,0,.09)');}
@@ -1259,7 +1259,7 @@ function bellHouse(D){
 function ktmBackHouses(D){
   [[108,93,13],[119,97,15],[186,96,14],[198,91,16]].forEach(([x,y,w],i)=>{const col=i%2?'#a85f45':'#a2583f';D.rect(x,y,w,118-y,col);
     D.poly([x-2,y,x+w+2,y,x+w-1,y-3.4,x+1,y-3.4],'#6e3e2c');D.rect(x-2,y,w+4,.8,'#4a2a1c');
-    for(let wy=y+3;wy<114;wy+=8)for(let wx=x+3;wx<x+w-3;wx+=6)D.rect(wx,wy,3,4,'#4e2c1e');});}
+    for(let wy=y+3;wy<114;wy+=8)for(let wx=x+3;wx<x+w-3;wx+=6){D.rect(wx,wy,3,4,'#4e2c1e');if(D.px)winGlow.push({x:wx,y:wy,w:3,h:4,on:Math.random()<.55,a:.5,rand:1});}});}
 /* --- a pagoda behind the square --- */
 function pagodaP(D){const cx=166;
   for(let i=0;i<5;i++){const w=64-i*8,y=114-i*4;D.rect(cx-w/2,y,w,4,'#a9533a',1);D.rect(cx-w/2,y,w,1,'#c9765a');D.rect(cx-w/2,y+3,w,1,'#7e3a27');}
@@ -1337,14 +1337,14 @@ function patanShopsS(){if(shut<1){const o=0;C.save();C.translate(o-12,0);sMomoKe
    Nyatapola in the centre on its five plinths, Bhairavnath on the right, King Bhupatindra Malla on his pillar far left,
    a Newari shop building (momo, chiya, juju dhau), potters and pots drying in the sun at the right edge.
    Bhaktapur's brick is a touch lighter than Kathmandu's and Patan's. */
-const [bgB,bB]=mk(),glowB=[],lampsB=[{x:125,y:104},{x:207,y:104}];
+const [bgB,bB]=mk(),glowB=[],lampsB=[{x:131,y:104},{x:199,y:104}];
 const BBRICK='#a8492d',BSEAM='#8c3c23';
 // distant Newari houses that fill the gaps between the temples
 function bktBackHouses(D){
   [[112,74,20],[130,80,18],[148,70,16],[184,72,16],[198,79,16],[214,66,22],[236,72,20],[258,68,18],[278,74,22],[300,64,20]].forEach(([x,y,w],i)=>{
     const col=i%2?'#b67156':'#b06a4e';D.rect(x,y,w,118-y,col);
     D.poly([x-2,y,x+w+2,y,x+w-1,y-4,x+1,y-4],'#7a4632');
-    for(let wy=y+4;wy<112;wy+=9)for(let wx=x+3;wx<x+w-3;wx+=7)D.rect(wx,wy,3,4,'#5a3424');});}
+    for(let wy=y+4;wy<112;wy+=9)for(let wx=x+3;wx<x+w-3;wx+=7){D.rect(wx,wy,3,4,'#5a3424');if(D.px)winGlow.push({x:wx,y:wy,w:3,h:4,on:Math.random()<.55,a:.5,rand:1});}});}
 // King Bhupatindra Malla, seated with joined hands on his stone pillar under a little umbrella
 function mallaKing(D){const G='#c9a443',GL2='#e8c868',GD='#8a7a4a';
   D.rect(4,110,14,8,PSTD,1);D.rect(3,108,16,2,PSTONE,1);
@@ -1443,7 +1443,7 @@ let TLAMPS=PL.ktm.tl,STEAM=PL.ktm.steam,VISIT=PL.ktm.visit;
 function setPlace(p){place=p;const P=PL[p];curBG=P.bg;curFG=P.fg;winGlow=P.glow;lamps=P.lamps;SPOTS=P.spots;SHOPS=P.shops;SEATS=P.seats;SEATR=P.seatR;
   TSTR=P.tstr;DIYO=P.diyo;BOARD=P.board;MIR=P.mir;YMIN=P.ymin;TLAMPS=P.tl;STEAM=P.steam;VISIT=P.visit;SEATX=P.seatX||null;STAIRS=P.stairs||null;MIRC=P.mirC||W;
   dogs=P.dogs();play=null;playT=40+Math.random()*80;
-  walkers=[0,0,0,0].map(()=>newWalker(false));steam=[];notes=[];zs=[];daiPrev=null;
+  walkers=[0,0,0,0].map(()=>newWalker(false));steam=[];notes=[];zs=[];daiPrev=null;sparks=[];fx=[];
   pigeons=PIGS.slice(0,P.npig);const ng=P.npig-P.nroof;
   pigeons.forEach((q,i)=>{q.fl=0;if(i<ng){q.state='ground';q.x=P.pig[0]+Math.random()*P.pig[1];q.y=YMIN+2+Math.random()*(146-YMIN);}
     else{const s=SPOTS[0];q.state='roof';q.x=s.x+(Math.random()-.5)*s.w;q.y=s.y;}q.wait=5+Math.random()*15;});
@@ -1496,7 +1496,7 @@ function renderS(h,night,warm){TH=THEMES[style];if(staticDirty)drawStaticS();
   const ents=walkers.filter(w=>w.state!=='sit').map(w=>({y:w.y,d:w.state==='tsit'?()=>sSitter(w):()=>sWalker(w)}));
   pigeons.forEach(p=>{if(p.state==='ground')ents.push({y:p.y,d:()=>sPigeon(p)});});
   dogs.forEach(dg=>{if(dg.y<=150)ents.push({y:dg.y,d:()=>sDog(dg)});});
-  ents.sort((a,c)=>a.y-c.y).forEach(e=>e.d());sHands();
+  ents.sort((a,c)=>a.y-c.y).forEach(e=>e.d());sHands();fireBodies(DS);
   sBoard();pigeons.forEach(p=>{if(p.state==='roof')sPigeon(p);});sCustomer();
   scX.setTransform(1,0,0,1,0,0);scX.drawImage(fgS,0,0);scX.setTransform(K,0,0,K,0,0);
   if(wx.rain>.02){scX.fillStyle=`rgba(25,30,42,${.22*wx.rain})`;scX.fillRect(0,150,320,30);}
@@ -1524,6 +1524,7 @@ function renderS(h,night,warm){TH=THEMES[style];if(staticDirty)drawStaticS();
     const lit=(x,y,i,col)=>{if((i+step)%3===0)return;X.globalAlpha=k;sC(x+.5,y+.5,.55,col,0);X.globalAlpha=.3*L;sC(x+.5,y+.5,1.6,col,0);X.globalAlpha=1;};
     BB.forEach(([x,y],i)=>lit(x+BOARD[0],y+BOARD[1],i,BULB[i%BULB.length]));TSTR.forEach(([x1,y1,x2,y2,sg])=>{for(let x=x1;x<=x2;x+=3)lit(x,bulbY(x,x1,y1,x2,y2,sg),x>>1,BULB[(x>>1)%BULB.length]);});
     DIYO.forEach((x,i)=>{const f=.75+.25*Math.sin(T*11+i*1.7);sE(x+.5,147.2,.45,.85,`rgba(255,205,90,${f})`,0);if(L>0)sHalo(x+.5,147.2,6,.45*L*f);});}
+  fireLights(false,L);
   zs.forEach(z=>{X.globalAlpha=(1-z.t/3)*.75;sT('z',(MIR?MIRC-z.x-4:z.x)+2,z.y+4,3.6+z.t,'#e6ebff');});X.globalAlpha=1;
   notes.forEach(n=>{const a=(1-n.t/3)*.85,col=`rgba(255,226,160,${a})`;n={...n,x:mx(n.x)};sE(n.x-.6,n.y-.4,1,.75,col,0,-.4);sL(n.x+.3,n.y-.5,n.x+.3,n.y-4.4,col,.4);sL(n.x+.3,n.y-4.4,n.x+1.8,n.y-3.2,col,.4);});
   X.globalCompositeOperation='source-over';
@@ -1544,6 +1545,33 @@ function renderS(h,night,warm){TH=THEMES[style];if(staticDirty)drawStaticS();
     const r=X.createRadialGradient(pw/2,ph*.5,ph*.42,pw/2,ph*.5,pw*.62);r.addColorStop(0,'rgba(250,245,232,0)');r.addColorStop(1,'rgba(250,245,232,.5)');X.fillStyle=r;X.fillRect(0,0,pw,ph);}
   if(TH.grain){if(!noiseC)noiseC=grainTile();const pat=X.createPattern(noiseC,'repeat'),s=Math.max(1,Math.round(K/5));X.save();X.globalCompositeOperation='overlay';X.globalAlpha=TH.grain;
     X.translate((Math.random()*128)|0,(Math.random()*128)|0);X.scale(s,s);X.fillStyle=pat;X.fillRect(-128,-128,pw/s+256,ph/s+256);X.restore();}}
+
+/* ---------- Tihar nights, 6 PM to midnight: children (and some grown-ups) wave jhurjhure (sparklers), light gamala (flower pots) and pop little crackers ---------- */
+let sparks=[],fx=[],fireT=2,crackT=5;
+const fireTime=h=>fest==='tihar'&&h>=18&&h<24&&wx.rain<.3;
+const SPARK=['#fff6d0','#ffe08a','#ffc24a','#ff9a3a','#ffffff'];
+function emitSparks(x,y,n,sp,up,life){for(let i=0;i<n;i++){if(Math.random()>n-i)break;const a=Math.random()*TAU,v=sp*(.4+Math.random()*.6);sparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-up,l:life*(.5+Math.random()*.7),t:0,c:pick(SPARK)});}}
+function updFire(dt,h){
+  if(fireTime(h)){fireT-=dt;if(fireT<=0){fireT=5+Math.random()*9;
+      if(walkers.filter(w=>w.fireX!=null).length<3){const w=newWalker(true,Math.random()<.7?'child':pick(['man','woman']));w.umbItem=false;w.k=w.type==='child'?.72:1;
+        w.fireKind=Math.random()<.65?'sparkler':'gamala';w.fireX=30+Math.random()*260;w.fireY=YMIN+5+Math.random()*(142-YMIN);w.fireStay=w.fireKind==='sparkler'?25+Math.random()*25:14;walkers.push(w);}}
+    crackT-=dt;if(crackT<=0){crackT=3+Math.random()*8;const x=20+Math.random()*280,y=YMIN+4+Math.random()*(144-YMIN);fx.push({k:'pop',x,y,t:0,dur:.25});emitSparks(x,y-1,14,30,10,.4);
+      if(ambOn()&&AC.state==='running'){const t=AC.currentTime+.01;burst(t,900,.8,.12,.07,amb);tone(t,'sine',160,60,.15,.05,amb);}}}
+  fx.forEach(f=>{f.t+=dt;if(f.k==='gamala'&&f.t<f.dur-.5){const k=Math.min(1,f.t/.8);for(let i=0;i<dt*90*k;i++)sparks.push({x:f.x+(Math.random()-.5),y:f.y-2.6,vx:(Math.random()-.5)*16,vy:-(30+Math.random()*30)*k,l:.6+Math.random()*.6,t:0,c:pick(SPARK)});}});
+  fx=fx.filter(f=>f.t<f.dur);
+  sparks.forEach(p=>{p.t+=dt;p.vy+=55*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;});sparks=sparks.filter(p=>p.t<p.l&&p.y<150);if(sparks.length>900)sparks.splice(0,sparks.length-900);}
+// the sparkler sticks and the gamala pots (drawn with the people)
+function fireBodies(D){walkers.forEach(w=>{if(w.state!=='fire'||w.fireKind!=='sparkler'||!w.tip)return;D.line(w.x+w.dir*2.4*w.k,w.y-7.5*w.k,w.tip[0],w.tip[1],'#4a4a4a',.35);});
+  fx.forEach(f=>{if(f.k!=='gamala')return;D.poly([f.x-1.8,f.y,f.x+1.8,f.y,f.x+.6,f.y-2.8,f.x-.6,f.y-2.8],'#a8322a',1);D.rect(f.x-1.4,f.y-1.4,2.8,.6,'#f2c230');});}
+// their light: glowing tips, sparks, flashes
+function fireLights(px,L){const g=px?ctx:X2,dot=(x,y,c,a)=>{g.globalAlpha=a;if(px){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1);}else sC(x,y,.32,c,0);};
+  sparks.forEach(p=>dot(p.x,p.y,p.c,1-p.t/p.l));g.globalAlpha=1;
+  const glow=(x,y,r,a)=>{if(px)halo(x,y,r,a);else sHalo(x,y,r,a,'255,200,110');};
+  walkers.forEach(w=>{if(w.state==='fire'&&w.tip)glow(w.tip[0],w.tip[1],7,.55);});
+  fx.forEach(f=>{if(f.k==='gamala')glow(f.x,f.y-6,12,.5*Math.min(1,f.t/.8));if(f.k==='pop')glow(f.x,f.y-1,10*(1-f.t/f.dur)+2,.8*(1-f.t/f.dur));});}
+// windows in the background houses switch on and off now and then
+let winT=4;
+function updWindows(dt){winT-=dt;if(winT>0)return;winT=3+Math.random()*6;const r=winGlow.filter(w=>w.rand);if(r.length){const w=pick(r);w.on=!w.on;}}
 
 /* ---------- an aeroplane crosses the sky slowly every few hours (chiyabreak.com/#plane shows one soon) ---------- */
 let plane=null,planeNext=Date.now()+(location.hash==='#plane'?3e3:(1+Math.random()*2)*3600e3);
@@ -1574,6 +1602,10 @@ function update(dt,h){
   walkers.forEach(w=>{if(w.type==='cyclist'&&!w.rang&&w.x>110&&w.x<210){w.rang=true;if(Math.random()<.45)bikeBell();}});
   balloonT-=dt;if(balloonT<=0){balloonT=50+Math.random()*70;if(wx.rain<.3&&h>=7&&h<20&&!walkers.some(w=>w.type==='balloon'))walkers.push(newWalker(true,'balloon'));}
   walkers.forEach(w=>{
+    if(w.fireX!=null&&w.state==null){const rem=(w.fireX-w.x)*w.dir;if(rem<40)w.y+=(w.fireY-w.y)*Math.min(1,dt*1.5);
+      if(rem<=0){w.x=w.fireX;w.y=w.fireY;w.state='fire';w.fireT=w.fireStay;w.dist=Math.round(w.dist*.62/Math.PI)*Math.PI/.62;if(w.fireKind==='gamala')fx.push({k:'gamala',x:w.x+w.dir*8,y:w.y,t:0,dur:9});}}
+    if(w.state==='fire'){w.fireT-=dt;if(w.fireKind==='sparkler'){const a=T*5+w.x;w.tip=[w.x+w.dir*(4+Math.cos(a)*2.4)*w.k,w.y-(11+Math.sin(a)*2.4)*w.k];emitSparks(w.tip[0],w.tip[1],dt*55,18,0,.35);}
+      if(w.fireT<=0||!fireTime(h)){w.state=null;w.fireX=null;w.tip=null;w.backY=YMIN+3+Math.random()*12;}return;}
     if(w.state==='climb'||w.state==='descend'){const up=w.state==='climb',sp=6*dt;w.y+=up?-sp:sp;w.dist+=sp;
       if(up&&w.y<=w.climbY){w.y=w.climbY;w.state='tsit';w.sitT=w.sitStay;w.act=pick(['rest','rest','phone','look']);}
       else if(!up&&w.y>=YMIN+2){w.y=YMIN+2;w.state=null;w.climbX=null;}return;}
@@ -1586,7 +1618,7 @@ function update(dt,h){
     if(w.shopX!=null){const rem=(w.shopX-w.x)*w.dir;if(rem<40)w.y+=(w.shopY-w.y)*Math.min(1,dt*1.5);
       if(rem<=0){w.x=w.shopX;w.y=w.shopY;w.state='shop';w.shopT=w.shopStay;w.dist=Math.round(w.dist*.62/Math.PI)*Math.PI/.62;}}
     if(w.seatX!=null){const rem=(w.seatX-w.x)*w.dir;if(rem<40)w.y+=(147-w.y)*Math.min(1,dt*1.5);if(rem<=0){w.x=w.seatX;w.state='sit';w.sitT=w.stay;}}});walkers=walkers.filter(w=>w.x>-22&&w.x<W+22);
-  updPigeons(dt);updDogs(dt,h);updPlane(dt);
+  updPigeons(dt);updDogs(dt,h);updPlane(dt);updFire(dt,h);updWindows(dt);
   clouds.forEach(c=>{c.x+=c.sp*dt;if(c.x>W+10)c.x=-c.w-10;});
   steamT-=dt;if(steamT<=0){steamT=.28;const srcs=(shopOpen()?STEAM:[]).concat(dai.fresh?[[mx(GX-7),154],[mx(GX-7),154]]:[]);
     if(srcs.length){const src=pick(srcs);steam.push({x:src[0],y:src[1],t:0,ph:Math.random()*6});}}
@@ -1623,7 +1655,7 @@ function render(h,night,warm){
   const ents=walkers.filter(w=>w.state!=='sit').map(w=>({y:w.y,d:w.state==='tsit'?()=>drawSitter(g,w):()=>drawWalker(g,w)}));
   pigeons.forEach(p=>{if(p.state==='ground')ents.push({y:p.y,d:()=>drawPigeon(g,p)});});
   dogs.forEach(dg=>{if(dg.y<=150)ents.push({y:dg.y,d:()=>drawDog(g,dg)});});
-  ents.sort((a,c)=>a.y-c.y).forEach(e=>e.d());drawHands(g);
+  ents.sort((a,c)=>a.y-c.y).forEach(e=>e.d());drawHands(g);fireBodies(DPg());
   drawBoard(g);
   pigeons.forEach(p=>{if(p.state==='roof')drawPigeon(g,p);});
   drawCustomer(g);
@@ -1651,7 +1683,7 @@ function render(h,night,warm){
   }
   if(L>0)walkers.forEach(w=>{if(w.type==='cyclist'&&w.lamp){ctx.fillStyle=`rgba(255,235,170,${.9*L})`;ctx.fillRect(w.lamp[0],w.lamp[1],1,1);halo(w.lamp[0]+w.dir*3,w.lamp[1]+2,7,.35*L);}});
   if(radioOn){halo(mx(GX+32),152,11,.3+.25*L);}
-  festLights(L);
+  festLights(L);fireLights(true,L);
   zs.forEach(z=>{const a=(1-z.t/3)*.7,x=Math.round(MIR?MIRC-z.x-4:z.x),y=Math.round(z.y);ctx.fillStyle=`rgba(230,235,255,${a})`;ctx.fillRect(x,y,4,1);ctx.fillRect(x+2,y+1,1,1);ctx.fillRect(x+1,y+2,1,1);ctx.fillRect(x,y+3,4,1);});
   notes.forEach(n=>{const a=(1-n.t/3)*.85,x=Math.round(mx(n.x)),y=Math.round(n.y);ctx.fillStyle=`rgba(255,226,160,${a})`;ctx.fillRect(x,y-4,1,4);ctx.fillRect(x-2,y-1,2,2);ctx.fillRect(x+1,y-4,1,1);ctx.fillRect(x+2,y-3,1,1);});
   ctx.globalCompositeOperation='source-over';

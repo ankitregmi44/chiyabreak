@@ -23,7 +23,7 @@ The site is hosted on Cloudflare (Workers, free plan) and connected to this GitH
 Any change saved here goes live on chiyabreak.com automatically in about a minute.
 
 ## Previews
-- `chiyabreak.com/#tihar` or `/#dashain` — show the festival decorations any day
+- `chiyabreak.com/#tihar` or `/#dashain` — show the festival decorations any day (on Tihar nights, 6 PM–midnight, children play with jhurjhure sparklers, gamala and little crackers)
 - `chiyabreak.com/#patan` or `/#bhaktapur` — open straight in that square
 - `chiyabreak.com/#plane` — an aeroplane crosses the sky in a few seconds (normally every few hours)
 - `chiyabreak.com/#woof` — the dogs bark a few seconds after sound is turned on
