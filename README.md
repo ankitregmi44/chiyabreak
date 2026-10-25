@@ -4,9 +4,10 @@ Durbar Square scenes of Kathmandu, Patan (Lalitpur) and Bhaktapur in five art st
 
 Move between the squares with the arrows on the left and right edges (they appear when the mouse comes near a side; always shown on phones), or the ← → keys.
 Tap a street dog to wake it (not 9 PM–6 AM, when the dogs sleep beside the dai/didi/baje); double-tap for a random trick: roll over, spin, sit up and beg, play bow, or a little bark.
+Tap a pigeon and it flies somewhere else (not while roosting at night); double-tap for a loop-the-loop or a cooing dance.
 The scene always follows live Nepal time. Settings (bottom left): style, weather, volume and street sounds.
 
-Shops (momo, chiya, clay pots in Kathmandu, statues in Patan, juju dhau in Bhaktapur) are open 8 AM–10 PM Nepal time. "Auto" weather and the temperature come from live Kathmandu weather (Open-Meteo).
+Shops (momo, chiya, clay pots in Kathmandu, statues in Patan, juju dhau in Bhaktapur) are open 8 AM–10 PM Nepal time. "Auto" weather and the temperature are live for each square: Kathmandu, Patan and Bhaktapur (Open-Meteo).
 
 ## Files
 - `public/index.html` — the whole website (scene, music, controls). Edit this to change the site.
