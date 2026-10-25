@@ -290,7 +290,7 @@ const load=(k,d)=>{try{return localStorage.getItem(k)||d;}catch(e){return d;}},s
 const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & madal',src:'/music/sarangi-madal.mp3?v=2',tempo:60},{id:'harmonium',name:'Harmonium chill',src:'/music/harmonium-chill.mp3',tempo:65},
   {id:'newa',name:'Newa Lofi',gen:'newa',tempo:72},{id:'mithila',name:'Mithila',gen:'mithila',tempo:84,drone:261.63},
   {id:'dohori',name:'Funky Tune',gen:'dohori',tempo:84,gain:.95},{id:'sitar',name:'Sitar',gen:'sitar',tempo:64,drone:146.83,gain:1.9},
-  {id:'guitar',name:'Rainy Guitar',gen:'guitar',tempo:70,gain:1.65},{id:'pop',name:'90s Pop',gen:'pop',tempo:92,gain:1.05},
+  {id:'guitar',name:'Rainy Guitar',gen:'guitar',tempo:66,gain:1.75},{id:'pop',name:'90s Pop',gen:'pop',tempo:92,gain:1.05},
   {id:'folkrock',name:'Folk Rock',gen:'folkrock',tempo:96,gain:1.15}];   // the last two are composed live by the browser too
 const st={wx:'auto',tm:'live',amb:'off',station:load('cb.station','flute')};
 if(!STATIONS.some(x=>x.id===st.station))st.station='flute';
@@ -1912,14 +1912,14 @@ function sitarStep(n,t,sd){const s8=n%8,bar=n/8|0,ph=bar%8,R=SIT.root;
 /* 3. Rainy Guitar: soft fingerpicking in a calm minor key, a gentle piano melody now and then, and little drip notes like rain off the roof */
 const GTR=[[57,60,64,69],[53,57,60,65],[48,55,60,64],[55,59,62,67]],GPAT=[0,2,1,3,0,2,3,1],midi=m=>440*Math.pow(2,(m-69)/12);let gMel=4;
 function guitarStep(n,t,sd){const s8=n%8,bar=n/8|0,ch=GTR[bar%4],sw=s8%2?sd*.08:0;
-  // a slow, soft lofi beat: kick on 1 and the 'and' of 3, a brushed snare on 2 and 4, quiet ticks
-  if(s8===0||(s8===5&&bar%2===0))kick(t+(s8===5?sw:0),.26);if(s8===2||s8===6){burst(t,1500,.7,.16,.035,mus);tone(t,'triangle',200,140,.07,.014,mus);}
-  if(s8%2===0)hat(t,.006);else if(Math.random()<.4)hat(t+sw,.004);
-  const i=GPAT[s8];pluck(t+sw,midi(ch[i]-(i===0?12:0)),{dur:2.4,v:i===0?.32:.22,bright:.32,damp:.9955,lp:2300});
-  if(s8===0&&bar%2===0)strings(t,[midi(ch[0]-12),midi(ch[2])],sd*15,.012);
-  if(bar%4>=2&&t>=busy&&(s8===0||s8===3||s8===6)&&Math.random()<.5){gMel=walk(gMel,0,9);const k=[0,3,5,7,10][gMel%5]+12*(gMel/5|0);epiano(t,midi(69+k),sd*4,.03);busy=t+sd*3;}
-  if(Math.random()<.06)tone(t+Math.random()*sd,'sine',1700+Math.random()*700,1100,.06,.012,mus);}
-
+  // a slow, soft lofi beat: a gentle kick on 1 and the 'and' of 3, a soft brush on 2 and 4 (no high ticks)
+  if(s8===0||(s8===5&&bar%2===0))kick(t+(s8===5?sw:0),.24);if(s8===2||s8===6){burst(t,700,.6,.2,.03,mus);tone(t,'triangle',170,120,.08,.012,mus);}
+  // mellow fingerpicking: an octave lower, warm and round like a nylon-string guitar played softly
+  const i=GPAT[s8];pluck(t+sw,midi(ch[i]-(i===0?24:12)),{dur:2.8,v:i===0?.36:.26,bright:.16,damp:.9968,lp:1100});
+  if(s8===0&&bar%2===0)strings(t,[midi(ch[0]-12),midi(ch[2]-12)],sd*15,.01);
+  // now and then, a soft low piano melody
+  if(bar%4>=2&&t>=busy&&(s8===0||s8===3||s8===6)&&Math.random()<.45){gMel=walk(gMel,0,7);const k=[0,3,5,7,10][gMel%5]+12*(gMel/5|0);epiano(t,midi(57+k),sd*4,.026);busy=t+sd*3;}
+  if(Math.random()<.03)tone(t+Math.random()*sd,'sine',820+Math.random()*260,620,.1,.008,mus);}
 /* 4. 90s Pop: an easy, happy Nepali keyboard-pop feel — soft drums, bass, electric piano, strings and a catchy synth melody */
 const POP={root:196,ch:[[0,4,7],[7,11,14],[9,12,16],[5,9,12]],sc:[0,2,4,7,9],rhy:[[0,2],[2,1],[3,1],[4,2],[6,2]]};let popMot=null,popSec=-1;
 function popMotif(){let i=5;return POP.rhy.map(()=>{i=walk(i,2,10);return i;});}
