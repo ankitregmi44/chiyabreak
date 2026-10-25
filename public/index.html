@@ -78,14 +78,10 @@ h1{font-family:var(--display);font-weight:600;font-size:clamp(20px,2.4vw,30px);m
 .ghost{font-family:var(--display);font-size:15px;color:var(--fg);padding:10px 14px;cursor:pointer}
 .ghost[aria-expanded="true"]{box-shadow:inset 0 0 0 1px var(--muted)}
 .station{display:inline-flex;align-items:center;justify-content:center;gap:10px}
-.st-car{font-size:11px;opacity:.75}
-/* the list of stations that opens above the station button */
-.stlist{position:absolute;right:0;bottom:calc(100% + 8px);display:flex;flex-direction:column;gap:1px;padding:6px;min-width:190px;max-height:min(62vh,440px);overflow:auto}
-.stlist[hidden]{display:none}
-.stlist button{font-family:var(--display);font-size:14px;text-align:left;background:none;border:0;color:var(--fg);padding:7px 10px;border-radius:4px;cursor:pointer;white-space:nowrap}
-.stlist button:hover{background:rgba(255,255,255,.08)}
-.stlist button[aria-selected="true"]{color:var(--accent)}
-.stlist button[aria-selected="true"]::before{content:'♪ '}
+.station{gap:0;padding:0 2px}
+.st-name{font-family:var(--display);font-size:15px;color:var(--fg);min-width:9.5em;text-align:center;white-space:nowrap;padding:0 2px}
+.st-arr{width:40px;height:42px;background:none;border:0;color:var(--fg);font-family:var(--display);font-size:24px;line-height:1;cursor:pointer;border-radius:5px;padding:0 0 3px}
+.st-arr:hover{background:rgba(255,255,255,.08)}
 .st-dots{display:inline-flex;gap:3px}
 .st-dots i{width:5px;height:5px;border-radius:50%;background:var(--muted);opacity:.45}
 .st-dots i.on{background:var(--accent);opacity:1}
@@ -115,6 +111,9 @@ input[type=range]{accent-color:var(--accent);width:150px;min-width:80px;flex:1 1
 .close{position:absolute;top:10px;right:10px;width:32px;height:32px;background:none;border:0;color:var(--fg);font-size:18px;cursor:pointer;border-radius:4px}
 .rotate{display:none;position:fixed;left:0;right:0;text-align:center;font-size:14px;color:var(--muted);margin:0;padding:0 16px}
 body.portrait .rotate{display:block}
+/* phone held upright: Settings on its own on the left, the radio controls fill the rest of the row */
+body.portrait .dock{left:calc(var(--pad-l) + 112px);right:var(--pad-r);gap:6px}body.portrait .dock .station{flex:1 1 0;min-width:0;justify-content:space-between}
+body.portrait .st-name{min-width:0;flex:1 1 0;overflow:hidden;text-overflow:ellipsis;font-size:14px}body.portrait .st-arr{width:32px;flex:none}body.portrait .power{flex:none;padding:0 13px}body.portrait #moreBtn{padding:10px 12px}
 @media (max-height:480px){.hud{display:none}
   /* phone held sideways in Patan: the didi sits on the right, so the radio buttons move to the left */
   body.mir:not(.portrait) .dock{right:auto;left:calc(var(--pad-l) + 104px)}}
@@ -155,8 +154,7 @@ body.portrait .rotate{display:block}
 
 <div class="dock ui">
   <button class="power" id="power" type="button" aria-pressed="false" aria-label="Turn on the radio"><span class="pw-i" aria-hidden="true">▶</span><span class="pw-t">Turn on the radio</span></button>
-  <button class="ghost plate station" id="station" type="button"><span class="st-name">Madal &amp; flute</span><span class="st-car" aria-hidden="true">▾</span></button>
-  <div class="stlist plate" id="stList" role="listbox" aria-label="Radio stations" hidden></div>
+  <div class="plate station" id="station" role="group" aria-label="Radio station"><button type="button" class="st-arr" id="stPrev" aria-label="Previous station">‹</button><span class="st-name" id="stName" aria-live="polite">Madal &amp; flute</span><button type="button" class="st-arr" id="stNext" aria-label="Next station">›</button></div>
 </div>
 
 <footer class="copy ui"><span>© 2026 AR</span><span aria-hidden="true">·</span><button type="button" class="linkbtn" id="aboutBtn" aria-haspopup="dialog">About</button></footer>
@@ -291,7 +289,7 @@ const load=(k,d)=>{try{return localStorage.getItem(k)||d;}catch(e){return d;}},s
 /* radio stations: the first is played live by the browser, the other two are recorded songs */
 const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & madal',src:'/music/sarangi-madal.mp3?v=2',tempo:60},{id:'harmonium',name:'Harmonium chill',src:'/music/harmonium-chill.mp3',tempo:65},
   {id:'newa',name:'Newa Lofi',gen:'newa',tempo:72},{id:'mithila',name:'Mithila',gen:'mithila',tempo:84,drone:261.63},
-  {id:'dohori',name:'Dohori',gen:'dohori',tempo:84,gain:.95},{id:'sitar',name:'Sitar',gen:'sitar',tempo:64,drone:146.83,gain:1.9},
+  {id:'dohori',name:'Funky Tune',gen:'dohori',tempo:84,gain:.95},{id:'sitar',name:'Sitar',gen:'sitar',tempo:64,drone:146.83,gain:1.9},
   {id:'guitar',name:'Rainy Guitar',gen:'guitar',tempo:70,gain:1.65},{id:'pop',name:'90s Pop',gen:'pop',tempo:92,gain:1.05},
   {id:'folkrock',name:'Folk Rock',gen:'folkrock',tempo:96,gain:1.15}];   // the last two are composed live by the browser too
 const st={wx:'auto',tm:'live',amb:'off',station:load('cb.station','flute')};
@@ -1914,6 +1912,9 @@ function sitarStep(n,t,sd){const s8=n%8,bar=n/8|0,ph=bar%8,R=SIT.root;
 /* 3. Rainy Guitar: soft fingerpicking in a calm minor key, a gentle piano melody now and then, and little drip notes like rain off the roof */
 const GTR=[[57,60,64,69],[53,57,60,65],[48,55,60,64],[55,59,62,67]],GPAT=[0,2,1,3,0,2,3,1],midi=m=>440*Math.pow(2,(m-69)/12);let gMel=4;
 function guitarStep(n,t,sd){const s8=n%8,bar=n/8|0,ch=GTR[bar%4],sw=s8%2?sd*.08:0;
+  // a slow, soft lofi beat: kick on 1 and the 'and' of 3, a brushed snare on 2 and 4, quiet ticks
+  if(s8===0||(s8===5&&bar%2===0))kick(t+(s8===5?sw:0),.26);if(s8===2||s8===6){burst(t,1500,.7,.16,.035,mus);tone(t,'triangle',200,140,.07,.014,mus);}
+  if(s8%2===0)hat(t,.006);else if(Math.random()<.4)hat(t+sw,.004);
   const i=GPAT[s8];pluck(t+sw,midi(ch[i]-(i===0?12:0)),{dur:2.4,v:i===0?.32:.22,bright:.32,damp:.9955,lp:2300});
   if(s8===0&&bar%2===0)strings(t,[midi(ch[0]-12),midi(ch[2])],sd*15,.012);
   if(bar%4>=2&&t>=busy&&(s8===0||s8===3||s8===6)&&Math.random()<.5){gMel=walk(gMel,0,9);const k=[0,3,5,7,10][gMel%5]+12*(gMel/5|0);epiano(t,midi(69+k),sd*4,.03);busy=t+sd*3;}
@@ -1960,18 +1961,10 @@ function startStation(){const s=station();tuning=false;hudT=0;
   if('mediaSession' in navigator&&window.MediaMetadata){try{navigator.mediaSession.metadata=new MediaMetadata({title:s.name,artist:'Chiya Break · चिया ब्रेक',artwork:[{src:'/apple-touch-icon.png',sizes:'180x180',type:'image/png'}]});}catch(e){}}}
 function stopStation(){clearInterval(sched);if(!AC)return;vinyl(false);mus.gain.cancelScheduledValues(AC.currentTime);mus.gain.setTargetAtTime(0,AC.currentTime,.05);
   if(trackEl){trackEl.pause();fileG.gain.cancelScheduledValues(AC.currentTime);fileG.gain.setTargetAtTime(0,AC.currentTime,.02);}}
-const stBtn=document.getElementById('station');
-const stList=document.getElementById('stList');
-STATIONS.forEach(x=>{const b=document.createElement('button');b.type='button';b.role='option';b.textContent=x.name;b.dataset.id=x.id;
-  b.addEventListener('click',()=>{st.station=x.id;save('cb.station',x.id);setStationUI();closeStList();if(radioOn){stopStation();startStation();}});stList.appendChild(b);});
-function openStList(){stList.hidden=false;document.body.classList.add('setopen');stBtn.setAttribute('aria-expanded','true');const cur=stList.querySelector('[aria-selected="true"]');if(cur)cur.focus();}
-function closeStList(){stList.hidden=true;if(document.getElementById('more').hidden)document.body.classList.remove('setopen');stBtn.setAttribute('aria-expanded','false');}
-function setStationUI(){const s=station(),i=STATIONS.indexOf(s);stBtn.querySelector('.st-name').textContent=s.name;
-  stList.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.id===s.id)));
-  stBtn.setAttribute('aria-label',`Radio station: ${s.name} (${i+1} of ${STATIONS.length}). Tap to choose a station`);stBtn.title='Choose a station';stBtn.setAttribute('aria-haspopup','listbox');hudT=0;}
-stBtn.addEventListener('click',e=>{e.stopPropagation();stList.hidden?openStList():closeStList();});
-document.addEventListener('click',e=>{if(!stList.hidden&&!stList.contains(e.target)&&e.target!==stBtn)closeStList();});
-addEventListener('keydown',e=>{if(e.key==='Escape'&&!stList.hidden){closeStList();stBtn.focus();}});
+const stBtn=document.getElementById('station'),stName=document.getElementById('stName');
+function setStationUI(){const s=station(),i=STATIONS.indexOf(s);stName.textContent=s.name;stName.title=`Station ${i+1} of ${STATIONS.length}`;hudT=0;}
+function stepStation(d){const i=STATIONS.indexOf(station());st.station=STATIONS[(i+d+STATIONS.length)%STATIONS.length].id;save('cb.station',st.station);setStationUI();if(radioOn){stopStation();startStation();}}
+document.getElementById('stPrev').addEventListener('click',()=>stepStation(-1));document.getElementById('stNext').addEventListener('click',()=>stepStation(1));
 setStationUI();
 const pw=document.getElementById('power');
 /* iPhone/iPad: Web Audio is muted by the ring/silent switch unless the page is also playing a normal media element.
@@ -2022,7 +2015,7 @@ if(root.requestFullscreen&&document.fullscreenEnabled!==false){fsBtn.hidden=fals
 let idleT=0;const canHover=matchMedia('(hover:hover) and (pointer:fine)').matches;
 function wake(){document.body.classList.remove('idle');idleT=0;}
 ['pointermove','pointerdown','keydown','wheel'].forEach(ev=>addEventListener(ev,wake,{passive:true}));
-setInterval(()=>{idleT+=1;if(canHover&&radioOn&&more.hidden&&about.hidden&&stList.hidden&&idleT>=6)document.body.classList.add('idle');},1000);
+setInterval(()=>{idleT+=1;if(canHover&&radioOn&&more.hidden&&about.hidden&&idleT>=6)document.body.classList.add('idle');},1000);
 
 /* ---------- about ---------- */
 const about=document.getElementById('about'),aboutBtn=document.getElementById('aboutBtn'),aboutClose=document.getElementById('aboutClose');

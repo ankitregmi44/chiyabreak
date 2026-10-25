@@ -13,7 +13,7 @@ Shops (momo, chiya, clay pots in Kathmandu, statues in Patan, juju dhau in Bhakt
 - `public/index.html` — the whole website (scene, music, controls). Edit this to change the site.
   The pixel style draws into a small 320×180 canvas; Lofi and Flat draw the same scene with smooth shapes on a sharp canvas (search for "Lofi & Flat art styles").
   Patan is drawn once for all styles (search for "Patan (Lalitpur) Durbar Square"); new squares are added to `PL` and `PLACE_ORDER`.
-- `public/music/` — the recorded radio stations (sarangi & madal, harmonium chill). All stations except sarangi & madal and harmonium chill are composed live by the browser (search for "more live stations" in index.html): madal & flute, Newa Lofi, Mithila, Dohori, Sitar, Rainy Guitar, 90s Pop and Folk Rock. The station button opens a list.
+- `public/music/` — the recorded radio stations (sarangi & madal, harmonium chill). All stations except sarangi & madal and harmonium chill are composed live by the browser (search for "more live stations" in index.html): madal & flute, Newa Lofi, Mithila, Funky Tune, Sitar, Rainy Guitar, 90s Pop and Folk Rock. Switch stations with the ‹ › arrows on the station button.
 - `public/favicon.svg`, `public/*.png` — the clay tea cup icon.
 - `worker/index.js` — the visitor counter shown at the top right (`/api/views`).
 - `wrangler.jsonc`, `package.json` — settings for Cloudflare. Leave these as they are.
