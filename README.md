@@ -26,4 +26,5 @@ Any change saved here goes live on chiyabreak.com automatically in about a minut
 - `chiyabreak.com/#tihar` or `/#dashain` — show the festival decorations any day (on Tihar nights, 6 PM–midnight, children play with jhurjhure sparklers, gamala and little crackers)
 - `chiyabreak.com/#patan` or `/#bhaktapur` — open straight in that square
 - `chiyabreak.com/#plane` — an aeroplane crosses the sky in a few seconds (normally every few hours)
+- `chiyabreak.com/#kukur` — Kukur Tihar (7–8 Nov 2026): the dogs get a red tika and a leaf plate of food
 - `chiyabreak.com/#woof` — the dogs bark a few seconds after sound is turned on
