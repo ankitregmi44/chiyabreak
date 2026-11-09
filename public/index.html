@@ -43,7 +43,7 @@ body{margin:0;overflow:hidden;font-family:var(--body);font-size:15px;line-height
 .nav-l .nav-t{left:0}.nav-r .nav-t{right:0}
 @media (hover:none){.nav{opacity:.8;pointer-events:auto;width:38px;height:60px;font-size:30px}.nav-t{display:none}}
 body.setopen .nav{opacity:0!important;pointer-events:none!important}
-.fade{position:fixed;inset:0;background:#0b0907;opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:5}
+.fade{position:fixed;inset:0;background:#0b0907;opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:12}
 .fade.on{opacity:1}
 canvas{position:absolute;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
 #c2{image-rendering:auto}
@@ -119,6 +119,37 @@ body.portrait .st-name{min-width:0;flex:1 1 0;overflow:hidden;text-overflow:elli
 @media (max-height:480px){.hud{display:none}
   /* phone held sideways in Patan: the didi sits on the right, so the radio buttons move to the left */
   body.mir:not(.portrait) .dock{right:auto;left:calc(var(--pad-l) + 104px)}}
+/* ---------- home screen: choose a place ---------- */
+.home{position:fixed;inset:0;z-index:8;overflow-y:auto;background:rgba(14,10,8,.76);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
+.home[hidden]{display:none}
+.home-in{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;padding:calc(var(--pad-t) + 10px) 0 calc(var(--pad-b) + 84px)}
+.home-head{padding:0 clamp(18px,6vw,84px);margin-bottom:clamp(8px,2.4vh,26px)}
+.home-kick{font-family:var(--display);font-size:14px;color:var(--accent);margin:0 0 6px;letter-spacing:.06em}
+.home h2{font-family:var(--display);font-weight:600;font-size:clamp(28px,4.4vw,52px);line-height:1.05;margin:0 0 8px}
+.home-sub{margin:0;color:var(--muted);font-size:clamp(15px,1.4vw,18px);max-width:52ch}
+.places{display:flex;gap:28px;overflow-x:auto;padding:16px clamp(18px,6vw,84px) 18px;scrollbar-width:thin;scrollbar-color:rgba(242,231,215,.25) transparent}
+.pgroup{flex:none}
+.pgroup h3{font-family:var(--display);font-weight:400;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.pcards{display:flex;gap:12px}
+.pcard{flex:none;width:clamp(150px,17vw,232px);padding:0;background:none;border:0;color:var(--fg);text-align:left;cursor:pointer;font:inherit;transition:transform .25s ease}
+.pthumb{display:block;aspect-ratio:16/9;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#241c16;transition:border-color .25s ease,box-shadow .25s ease}
+.pthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pname{display:block;font-family:var(--display);font-size:16px;margin-top:8px}
+.pnote{display:block;font-size:12.5px;color:var(--muted)}
+.pcard:not(.soon):hover,.pcard:not(.soon):focus-visible{transform:translateY(-4px) scale(1.05);outline:none}
+.pcard:not(.soon):hover .pthumb,.pcard:not(.soon):focus-visible .pthumb{border-color:var(--accent);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.pcard.soon{cursor:default}
+.pcard.soon .pthumb{border-style:dashed;display:grid;place-items:center;background:linear-gradient(135deg,var(--c1),var(--c2));opacity:.5}
+.pcard.soon .pthumb span{font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;background:rgba(14,10,8,.6);padding:2px 8px;border-radius:3px}
+.pcard.soon .pname{color:var(--muted)}
+.thought{margin:clamp(8px,2.4vh,24px) clamp(18px,6vw,84px) 0;max-width:560px;padding:12px 16px}
+.thought b{display:block;font-family:var(--display);font-weight:400;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.thought p{margin:0;color:var(--muted);font-size:15px}
+.homebtn{font-family:var(--display);font-size:13px;color:var(--fg);padding:5px 10px;cursor:pointer}
+.homebtn:hover{border-color:var(--muted)}
+body.athome .top,body.athome .setwrap,body.athome .nav,body.athome .rotate,body.athome .topright{display:none!important}
+body.athome .dock,body.athome .copy{z-index:9}
+@media (prefers-reduced-motion:reduce){.pcard{transition:none}}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}.ui{transition:none}}
 </style>
 </head>
@@ -131,6 +162,7 @@ body.portrait .st-name{min-width:0;flex:1 1 0;overflow:hidden;text-overflow:elli
 
 <header class="top ui">
   <div class="brand plate"><h1>Chiya Break</h1><span class="np" lang="ne">चिया ब्रेक</span></div>
+  <button class="homebtn plate" id="homeBtn" type="button" aria-label="Back to all places">‹ All places</button>
   <div class="hud"><span id="hud1">Kathmandu</span><span id="hud2" hidden></span></div>
 </header>
 
@@ -142,6 +174,19 @@ body.portrait .st-name{min-width:0;flex:1 1 0;overflow:hidden;text-overflow:elli
 <button class="nav nav-l plate ui" id="navL" type="button"><span aria-hidden="true">‹</span><span class="nav-t"></span></button>
 <button class="nav nav-r plate ui" id="navR" type="button"><span aria-hidden="true">›</span><span class="nav-t"></span></button>
 <div class="fade" id="fade" aria-hidden="true"></div>
+
+<!-- home screen: the first thing a visitor sees. Places are listed in HOME (search for "home screen: choose a place" in the script) -->
+<div class="home" id="home" role="dialog" aria-labelledby="homeTitle">
+  <div class="home-in">
+    <div class="home-head">
+      <p class="home-kick">Chiya Break · <span lang="ne">चिया ब्रेक</span></p>
+      <h2 id="homeTitle">Places dear to me</h2>
+      <p class="home-sub">Pick a place, sit down with a cup of chiya and listen for a while.</p>
+    </div>
+    <div class="places" id="places"></div>
+    <div class="thought plate"><b>Thought of the week</b><p>Coming soon: a few lines from me every week or two.</p></div>
+  </div>
+</div>
 
 <p class="rotate ui" id="rotate">Turn your phone sideways for the full view</p>
 
@@ -2257,7 +2302,7 @@ if(root.requestFullscreen&&document.fullscreenEnabled!==false){fsBtn.hidden=fals
 let idleT=0;const canHover=matchMedia('(hover:hover) and (pointer:fine)').matches;
 function wake(){document.body.classList.remove('idle');idleT=0;}
 ['pointermove','pointerdown','keydown','wheel'].forEach(ev=>addEventListener(ev,wake,{passive:true}));
-setInterval(()=>{idleT+=1;if(canHover&&radioOn&&more.hidden&&about.hidden&&idleT>=6)document.body.classList.add('idle');},1000);
+setInterval(()=>{idleT+=1;if(canHover&&radioOn&&more.hidden&&about.hidden&&home.hidden&&idleT>=6)document.body.classList.add('idle');},1000);
 
 /* ---------- about ---------- */
 const about=document.getElementById('about'),aboutBtn=document.getElementById('aboutBtn'),aboutClose=document.getElementById('aboutClose');
@@ -2282,11 +2327,11 @@ const neighbour=d=>{const i=PLACE_ORDER.indexOf(place),n=PLACE_ORDER.length;retu
 function setNav(){[[navL,-1],[navR,1]].forEach(([b,d])=>{const n=PL[neighbour(d)].name;b.setAttribute('aria-label',`Go to ${n} Durbar Square`);b.title=`${n} Durbar Square`;b.querySelector('.nav-t').textContent=n;});}
 let switching=false;
 function go(d){if(switching)return;switching=true;fade.classList.add('on');
-  setTimeout(()=>{setPlace(neighbour(d));setNav();fade.classList.remove('on');setTimeout(()=>{switching=false;},360);},reduce?0:360);}
+  setTimeout(()=>{setPlace(neighbour(d));setNav();history.replaceState(null,'','#'+SLUG[place]);fade.classList.remove('on');setTimeout(()=>{switching=false;},360);},reduce?0:360);}
 navL.addEventListener('click',()=>go(-1));navR.addEventListener('click',()=>go(1));
 if(canHover){addEventListener('pointermove',e=>{const edge=Math.max(90,innerWidth*.14);navL.classList.toggle('show',e.clientX<edge);navR.classList.toggle('show',e.clientX>innerWidth-edge);});
   document.addEventListener('pointerleave',()=>{navL.classList.remove('show');navR.classList.remove('show');});}
-addEventListener('keydown',e=>{if(!about.hidden||e.target.tagName==="INPUT")return;if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1);});
+addEventListener('keydown',e=>{if(!about.hidden||!home.hidden||e.target.tagName==="INPUT")return;if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1);});
 
 /* ---------- tap a dog: wakes it up (not at night), double tap: it rolls over ---------- */
 const sceneEl=document.getElementById('scene');let lastTap={dg:null,t:0};
@@ -2314,7 +2359,37 @@ function tapPigeon(p){if(roost||p.loop||p.dance>0)return;const now=performance.n
 sceneEl.addEventListener('click',e=>{const pg=pigeonAt(e);if(pg)return tapPigeon(pg);const dg=dogAt(e);if(dg)tapDog(dg);});
 if(canHover)sceneEl.addEventListener('pointermove',e=>{sceneEl.style.cursor=pigeonAt(e)||dogAt(e)?'pointer':'';});
 
+/* ---------- home screen: choose a place ----------
+   HOME lists every place by country. A place with an id (ktm, patan, bkt) has a scene and can be opened;
+   a place without one shows as a "Soon" card. Small pictures live in public/thumbs/<id>-<style>.jpg. */
+const home=document.getElementById('home'),placesEl=document.getElementById('places'),homeBtn=document.getElementById('homeBtn');
+const SLUG={ktm:'kathmandu',patan:'patan',bkt:'bhaktapur'},UNSLUG={kathmandu:'ktm',patan:'patan',bhaktapur:'bkt'};
+const HOME=[['Nepal','#8a3a2a','#c98a4a',[['ktm','Kathmandu','Durbar Square'],['patan','Patan','Durbar Square'],['bkt','Bhaktapur','Durbar Square'],[null,'Pokhara',''],[null,'Sauraha','Chitwan']]],
+  ['India','#a8562a','#d9a23a',[[null,'Delhi',''],[null,'Calcutta',''],[null,'Chennai','']]],
+  ['United Kingdom','#3a5a6a','#7a9a8a',[[null,'Norwich',''],[null,'London',''],[null,'Cambridge',''],[null,'Edinburgh',''],[null,'Cardiff','']]],
+  ['Montenegro','#2a5a7a','#8ab0b8',[[null,'Kotor','']]],
+  ['Morocco','#a84a2a','#e0b070',[[null,'Marrakech',''],[null,'Sahara','']]]];
+HOME.forEach(([country,c1,c2,list])=>{const g=document.createElement('section');g.className='pgroup';const h=document.createElement('h3');h.textContent=country;g.appendChild(h);
+  const row=document.createElement('div');row.className='pcards';g.appendChild(row);
+  list.forEach(([id,name,note])=>{const b=document.createElement(id?'button':'div');b.className='pcard'+(id?'':' soon');
+    const t=document.createElement('span');t.className='pthumb';
+    if(id){b.type='button';b.dataset.go=id;b.setAttribute('aria-label',`Open ${name}${note?' '+note:''}`);const im=document.createElement('img');im.alt='';im.loading='lazy';im.dataset.p=id;t.appendChild(im);b.addEventListener('click',()=>enter(id));}
+    else{t.style.setProperty('--c1',c1);t.style.setProperty('--c2',c2);const sp=document.createElement('span');sp.textContent='Soon';t.appendChild(sp);}
+    const n=document.createElement('span');n.className='pname';n.textContent=name;b.appendChild(t);b.appendChild(n);
+    if(note||!id){const q=document.createElement('span');q.className='pnote';q.textContent=note||'\u00a0';b.appendChild(q);}row.appendChild(b);});
+  placesEl.appendChild(g);});
+// the mouse wheel scrolls the row of places sideways
+placesEl.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)&&placesEl.scrollWidth>placesEl.clientWidth){placesEl.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
+function showHome(push){home.hidden=false;document.body.classList.add('athome');placesEl.querySelectorAll('img[data-p]').forEach(i=>{i.src=`thumbs/${i.dataset.p}-${style}.jpg`;});
+  if(push!==false&&location.hash)history.pushState(null,'',location.pathname+location.search);}
+function hideHome(){home.hidden=true;document.body.classList.remove('athome');fit();}
+function enter(p){if(switching)return;switching=true;fade.classList.add('on');
+  setTimeout(()=>{if(p!==place){setPlace(p);setNav();}hideHome();history.pushState(null,'','#'+SLUG[p]);fade.classList.remove('on');setTimeout(()=>{switching=false;},360);},reduce?0:360);}
+homeBtn.addEventListener('click',()=>showHome());
+// the browser's back button returns to the home screen
+addEventListener('popstate',()=>{const p=UNSLUG[location.hash.slice(1).toLowerCase()];if(p){if(p!==place){setPlace(p);setNav();}hideHome();}else if(!location.hash)showHome(false);});
 {const hs=location.hash.slice(1).toLowerCase();setPlace(hs==='patan'?'patan':hs==='bhaktapur'?'bkt':'ktm');}setNav();
+if(location.hash)hideHome();else showHome(false);   // a link like chiyabreak.com/#patan opens that place directly
 })();
 </script>
 <script>
