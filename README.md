@@ -9,6 +9,9 @@ The scene always follows live Nepal time. Settings (bottom left): style, weather
 
 Shops (momo, chiya, clay pots in Kathmandu, statues in Patan, juju dhau in Bhaktapur) are open 8 AM–10 PM Nepal time. "Auto" weather and the temperature are live for each square: Kathmandu, Patan and Bhaktapur (Open-Meteo).
 
+Visitors land on a home screen and pick a place; "‹ All places" on any scene goes back. On computers the small pictures on the home screen move (they are this same page opened with `?thumb=ktm`, `?thumb=patan` or `?thumb=bkt`); phones show still pictures from `public/thumbs/`.
+To add a place card, edit `HOME` in index.html (search for "home screen: choose a place"). To change what I say about a place, edit `THOUGHTS` (search for "my thoughts about each place").
+
 ## Files
 - `public/index.html` — the whole website (scene, music, controls). Edit this to change the site.
   The pixel style draws into a small 320×180 canvas; Lofi and Flat draw the same scene with smooth shapes on a sharp canvas (search for "Lofi & Flat art styles").
