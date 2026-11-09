@@ -998,7 +998,8 @@ function anDaiHead(x,hy,dd,bj,skin,skD,hair,shut){const cx=x+6.9,cy=hy+3,sv=CELO
   else sE(cx-1.3,cy+1.6,.95,1.35,skD,1);
   // the eye
   const ex=cx+2.75,ey=cy+.45;C.save();C.translate(ex,ey);C.scale(.66,.66);C.translate(-ex,-ey);
-  if(shut){C.beginPath();C.moveTo(ex-1.3,ey+.2);C.quadraticCurveTo(ex,ey-1.3,ex+1.3,ey+.2);C.lineWidth=.5;C.lineCap='round';C.strokeStyle=ink;C.stroke();}
+  if(bj){if(shut)sL(ex-.9,ey+.1,ex+.9,ey+.1,'#1a1410',.6);else sC(ex+.1,ey+.1,.7,'#1a1410',0);}   // baje keeps a simple eye behind his glasses
+  else if(shut){C.beginPath();C.moveTo(ex-1.3,ey+.2);C.quadraticCurveTo(ex,ey-1.3,ex+1.3,ey+.2);C.lineWidth=.5;C.lineCap='round';C.strokeStyle=ink;C.stroke();}
   else{sE(ex,ey,1.2,1.65,'#fffaf2',0);sE(ex+.18,ey+.1,.9,1.35,dd?'#6a3418':'#4a2a16',0);sE(ex+.18,ey+.22,.46,.8,'#150c08',0);sC(ex-.16,ey-.55,.4,'#ffffff',0);sC(ex+.55,ey+.75,.2,'#ffffff',0);
     C.beginPath();if(dd){C.moveTo(ex-2,ey-1.5);C.lineTo(ex-1.3,ey-1);}else C.moveTo(ex-1.3,ey-1);C.quadraticCurveTo(ex,ey-2.15,ex+1.4,ey-1.2);C.lineWidth=dd?.7:.6;C.lineCap='round';C.strokeStyle=ink;C.stroke();}
   C.restore();
