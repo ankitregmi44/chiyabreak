@@ -177,6 +177,10 @@ body.portrait .st-name{min-width:0;flex:1 1 0;overflow:hidden;text-overflow:elli
 body.athome .top,body.athome .setwrap,body.athome .nav,body.athome .rotate,body.athome .topright{display:none!important}
 body.athome .dock,body.athome .copy{z-index:9}
 body.athome .onplace{display:none}
+.hvol{display:none;align-items:center;gap:10px;height:36px;padding:0 12px;font-size:13px;box-sizing:border-box;min-width:0}.hvol input{flex:1 1 0;width:auto;min-width:0}
+body.athome .dock{display:grid;grid-template-columns:auto auto;justify-content:end}body.athome .hvol{display:flex;grid-column:1/-1}
+@media (min-height:521px){.home-in{padding-bottom:calc(var(--pad-b) + 128px)}}
+@media (max-height:520px){body.athome .dock{display:flex}body.athome .hvol{order:-1;flex:0 0 190px;height:44px}}
 /* the site inside a small moving picture on the home screen: scene only */
 body.thumb .ui,body.thumb .home,body.thumb .fade,body.thumb .about-wrap{display:none!important}
 @media (prefers-reduced-motion:reduce){.pcard{transition:none}}
@@ -233,6 +237,8 @@ body.thumb .ui,body.thumb .home,body.thumb .fade,body.thumb .about-wrap{display:
 <div class="dock ui">
   <button class="power" id="power" type="button" aria-pressed="false" aria-label="Turn on the radio"><span class="pw-i" aria-hidden="true">▶</span><span class="pw-t">Turn on the radio</span></button>
   <div class="plate station" id="station" role="group" aria-label="Radio station"><button type="button" class="st-arr" id="stPrev" aria-label="Previous station">‹</button><span class="st-name" id="stName" aria-live="polite">Madal &amp; flute</span><button type="button" class="st-arr" id="stNext" aria-label="Next station">›</button></div>
+  <!-- volume under the radio, shown on the home screen only (in a place it is in Settings) -->
+  <label class="plate hvol" id="hvol"><span>Volume</span><input type="range" id="vol2" min="0" max="100" value="65" aria-label="Volume"></label>
 </div>
 
 <footer class="copy ui"><span>© 2026 AR</span><span aria-hidden="true">·</span><button type="button" class="linkbtn" id="aboutBtn" aria-haspopup="dialog">About</button><span class="onplace" aria-hidden="true">·</span><button type="button" class="linkbtn onplace" id="thinkBtn" aria-haspopup="dialog">Thoughts</button></footer>
@@ -2404,7 +2410,9 @@ requestAnimationFrame(frame);
 /* ---------- audio ---------- */
 let hissG=null,droneG=null,AC=null,master,mus,send,rainG,noise,droneOs=[],sched=null,nextT=0,stepN=0,melIdx=5,busy=0;
 const volEl=document.getElementById('vol');const volG=()=>Math.pow(volEl.value/100,1.5)*.9;
-volEl.addEventListener('input',()=>{if(AC)master.gain.setTargetAtTime(volG(),AC.currentTime,.05);});
+const vol2=document.getElementById('vol2');
+volEl.addEventListener('input',()=>{vol2.value=volEl.value;if(AC)master.gain.setTargetAtTime(volG(),AC.currentTime,.05);});
+vol2.addEventListener('input',()=>{volEl.value=vol2.value;if(AC)master.gain.setTargetAtTime(volG(),AC.currentTime,.05);});   // the home-screen volume slider moves the one in Settings too
 function audioInit(){AC=new (window.AudioContext||window.webkitAudioContext)();
   master=AC.createGain();master.gain.value=volG();master.connect(AC.destination);
   const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=110;const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=4500;hp.connect(lp);lp.connect(master);
