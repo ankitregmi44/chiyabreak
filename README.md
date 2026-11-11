@@ -11,6 +11,7 @@ Shops (momo, chiya, clay pots in Kathmandu, statues in Patan, juju dhau in Bhakt
 
 Visitors land on a home screen and pick a place; "‹ All places" on any scene goes back. On computers the small pictures on the home screen move (they are this same page opened with `?thumb=ktm`, `?thumb=patan` or `?thumb=bkt`); phones show still pictures from `public/thumbs/`.
 To add a place card, edit `HOME` in index.html (search for "home screen: choose a place"). To change what I say about a place, edit `THOUGHTS` (search for "my thoughts about each place").
+To post a new thought of the week, edit `THOUGHT` (search for "thought of the week"): change the words and give it a new `id` (the date), so the reaction buttons (👍 ❤️ 😢 😂 😠) start again from zero.
 
 ## Files
 - `public/index.html` — the whole website (scene, music, controls). Edit this to change the site.
@@ -19,7 +20,7 @@ To add a place card, edit `HOME` in index.html (search for "home screen: choose 
   Patan is drawn once for all styles (search for "Patan (Lalitpur) Durbar Square"); new squares are added to `PL` and `PLACE_ORDER`.
 - `public/music/` — the recorded radio stations (sarangi & madal, harmonium chill). All stations except sarangi & madal and harmonium chill are composed live by the browser (search for "more live stations" in index.html): madal & flute, Newa Lofi, Mithila, Funky Tune, Sitar, Rainy Guitar, 90s Pop and Folk Rock. Switch stations with the ‹ › arrows on the station button.
 - `public/favicon.svg`, `public/*.png` — the clay tea cup icon.
-- `worker/index.js` — the visitor counter shown at the top right (`/api/views`).
+- `worker/index.js` — the visitor counter shown at the top right (`/api/views`) and the reaction counts for the thought of the week (`/api/react`).
 - `wrangler.jsonc`, `package.json` — settings for Cloudflare. Leave these as they are.
 
 ## How updates work

@@ -148,7 +148,14 @@ body.portrait .st-name{min-width:0;flex:1 1 0;overflow:hidden;text-overflow:elli
 .pcard.soon .pname{color:var(--muted)}
 .thought{margin:clamp(8px,2.4vh,24px) clamp(18px,6vw,84px) 0;max-width:560px;padding:12px 16px}
 .thought b{display:block;font-family:var(--display);font-weight:400;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
-.thought p{margin:0;color:var(--muted);font-size:15px}
+.thought p{margin:0;color:var(--fg);font-size:15px;line-height:1.55}
+.reacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.reacts[hidden]{display:none}
+.reacts button{display:inline-flex;align-items:center;gap:5px;background:rgba(242,231,215,.06);border:1px solid var(--line);border-radius:999px;color:var(--fg);font:inherit;font-size:14px;line-height:1;padding:6px 10px;cursor:pointer;transition:transform .15s ease,border-color .15s ease}
+.reacts button:hover{border-color:var(--muted);transform:translateY(-1px)}
+.reacts button[aria-pressed="true"]{border-color:var(--accent);background:rgba(242,231,215,.14)}
+.reacts .n{font-size:12.5px;color:var(--muted);min-width:1ch}
+@media (prefers-reduced-motion:reduce){.reacts button{transition:none}}
 .homebtn{font-family:var(--display);font-size:13px;color:var(--fg);padding:5px 10px;cursor:pointer}
 .homebtn:hover{border-color:var(--muted)}
 body.athome .top,body.athome .setwrap,body.athome .nav,body.athome .rotate,body.athome .topright{display:none!important}
@@ -190,7 +197,8 @@ body.thumb .ui,body.thumb .home,body.thumb .fade,body.thumb .about-wrap{display:
       <p class="home-sub">Pick a place, sit down with a cup of chiya (tea) and listen for a while.</p>
     </div>
     <div class="places" id="places"></div>
-    <div class="thought plate"><b>Thought of the week</b><p>Coming soon: a few lines from me every week or two.</p></div>
+    <!-- thought of the week: the words are in THOUGHT (search for "thought of the week" in the script) -->
+    <div class="thought plate"><b>Thought of the week</b><p id="thoughtTxt"></p><div class="reacts" id="reacts" role="group" aria-label="React to this thought" hidden></div></div>
   </div>
 </div>
 
@@ -2421,6 +2429,22 @@ function enter(p){if(switching)return;switching=true;fade.classList.add('on');
 homeBtn.addEventListener('click',()=>showHome());
 // the browser's back button returns to the home screen
 addEventListener('popstate',()=>{const p=UNSLUG[location.hash.slice(1).toLowerCase()];if(p){if(p!==place){setPlace(p);setNav();}hideHome();}else if(!location.hash)showHome(false);});
+/* ---------- thought of the week ----------
+   To post a new thought: change the words in `text` AND give it a new `id` (the date you post it, like 2026-11-18).
+   A new id starts the reactions again from zero; the old thought's reactions stay saved under its old id.
+   Reactions are counted by /api/react (worker/index.js). A visitor can give one reaction per visit and can change it. */
+const THOUGHT={id:'2026-11-11',text:'Things are complex. Well, life is easy, but thoughts, they are complex. Thirty-plus years in, and I have just realised I am an adult now. So for the next thirty years or so, I will be trying hard to act like a responsible person.'};
+const REACTS=[['up','👍','Thumbs up'],['love','❤️','Love'],['sad','😢','Sad'],['laugh','😂','Laugh'],['angry','😠','Angry']];
+{document.getElementById('thoughtTxt').textContent=THOUGHT.text;
+  const box=document.getElementById('reacts'),key='cb.react.'+THOUGHT.id,btn={};let mine=null,busy=false;
+  try{mine=sessionStorage.getItem(key);}catch(e){}
+  const show=c=>{REACTS.forEach(([k,,l])=>{const n=c[k]||0;btn[k].querySelector('.n').textContent=n;btn[k].setAttribute('aria-pressed',String(mine===k));btn[k].setAttribute('aria-label',`${l}: ${n}`);});box.hidden=false;};
+  REACTS.forEach(([k,e,l])=>{const b=document.createElement('button');b.type='button';b.title=l;b.innerHTML=`<span aria-hidden="true">${e}</span><span class="n">0</span>`;btn[k]=b;box.appendChild(b);
+    b.addEventListener('click',async()=>{if(busy||mine===k)return;busy=true;
+      try{const r=await fetch(`/api/react?id=${THOUGHT.id}&r=${k}`+(mine?`&prev=${mine}`:''),{method:'POST',cache:'no-store'});if(!r.ok)throw 0;const c=await r.json();
+        mine=k;try{sessionStorage.setItem(key,k);}catch(e){}show(c);}catch(e){}busy=false;});});
+  // the buttons stay hidden if the counter cannot be reached
+  if(!new URLSearchParams(location.search).has('thumb'))fetch('/api/react?id='+THOUGHT.id,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(show).catch(()=>{});}
 const THUMB=new URLSearchParams(location.search).get('thumb');if(THUMB)document.body.classList.add('thumb');
 {const hs=location.hash.slice(1).toLowerCase();setPlace(THUMB&&PL[THUMB]?THUMB:hs==='patan'?'patan':hs==='bhaktapur'?'bkt':'ktm');}setNav();
 if(THUMB||location.hash)hideHome();else showHome(false);   // a link like chiyabreak.com/#patan opens that place directly
