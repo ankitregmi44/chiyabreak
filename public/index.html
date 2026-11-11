@@ -389,7 +389,8 @@ const STATIONS=[{id:'flute',name:'Madal & flute'},{id:'sarangi',name:'Sarangi & 
   {id:'newa',name:'Newa Lofi',gen:'newa',tempo:72},{id:'mithila',name:'Mithila',gen:'mithila',tempo:84,drone:261.63},
   {id:'dohori',name:'Funky Tune',gen:'dohori',tempo:84,gain:.95},{id:'sitar',name:'Sitar',gen:'sitar',tempo:64,drone:146.83,gain:1.9},
   {id:'guitar',name:'Rainy Guitar',gen:'guitar',tempo:72,gain:1.75},{id:'pop',name:'90s Pop',gen:'pop',tempo:92,gain:1.05},
-  {id:'folkrock',name:'Folk Rock',gen:'folkrock',tempo:96,gain:1.15}];   // the last two are composed live by the browser too
+  {id:'folkrock',name:'Folk Rock',gen:'folkrock',tempo:96,gain:1.15},
+  {id:'kaski',name:'Kaski Beats',gen:'kaski',tempo:76,gain:1.3},{id:'nephop',name:'Nephop Vibe',gen:'nephop',tempo:82,gain:1.35}];   // the last two are composed live by the browser too
 const st={wx:'auto',tm:'live',amb:'off',station:load('cb.station','flute')};
 if(!STATIONS.some(x=>x.id===st.station))st.station='flute';
 const station=()=>STATIONS.find(x=>x.id===st.station);
@@ -2118,7 +2119,7 @@ const PL={
 const PLACE_ORDER=['ktm','patan','bkt','pkr'];
 let TLAMPS=PL.ktm.tl,STEAM=PL.ktm.steam,VISIT=PL.ktm.visit;
 function setPlace(p){place=p;const P=PL[p];curBG=P.bg;curFG=P.fg;winGlow=P.glow;lamps=P.lamps;SPOTS=P.spots;SHOPS=P.shops;SEATS=P.seats;SEATR=P.seatR;
-  TSTR=P.tstr;DIYO=P.diyo;BOARD=P.board;MIR=P.mir;YMIN=P.ymin;TLAMPS=P.tl;STEAM=P.steam;VISIT=P.visit;SEATX=P.seatX||null;STAIRS=P.stairs||null;MIRC=P.mirC||W;ROFF=P.roff||0;pkBoats=[];pkSmoke=[];fest=pickFest();
+  TSTR=P.tstr;DIYO=P.diyo;BOARD=P.board;MIR=P.mir;YMIN=P.ymin;TLAMPS=P.tl;STEAM=P.steam;VISIT=P.visit;SEATX=P.seatX||null;STAIRS=P.stairs||null;MIRC=P.mirC||W;ROFF=P.roff||0;pkBoats=[];pkSmoke=[];fest=pickFest();placeStation(p);
   dogs=P.dogs();play=null;playT=40+Math.random()*80;
   {const h=hourNow(),n=lateNight(h)?(Math.random()<.5?1:0):dogNight(h)||h>=20.5?2:4;walkers=Array.from({length:n},()=>newWalker(false));spawnT=lateNight(h)?40+Math.random()*120:1;}steam=[];notes=[];zs=[];daiPrev=null;sparks=[];fx=[];plates=dogs.map(d=>({x:clamp(d.x+10,20,300),y:clamp(d.y,YMIN+8,146)}));
   pigeons=PIGS.slice(0,P.npig);const ng=P.npig-P.nroof;
@@ -2628,7 +2629,48 @@ function folkStep(n,t,sd){const s8=n%8,bar=n/8|0,tune=FOLK[(bar/8|0)%4],full=(ba
   if(bar%8===7&&s8>=6)ta(t+sd*.5,.12);
   if(t>=busy&&s8%2===0&&Math.random()<(full?.7:.45)){folkMel=walk(folkMel,3,13);const L=tune.sc.length,k=tune.sc[folkMel%L]+12*(folkMel/L|0),d=sd*(full?(1+(Math.random()*2|0)):(2+(Math.random()*2|0))),f=mt(R*2,k);
     const who=tune.lead==='both'?(full?'both':'flute'):tune.lead;if(who!=='sarangi')flute(t,f,d*.95,.1);if(who!=='flute')bowed(t,f/2,d*.95,.045,Math.random()<.3?-2:0);busy=t+d;}}
-const GEN={newa:newaStep,mithila:mithilaStep,dohori:dohoriStep,sitar:sitarStep,guitar:guitarStep,pop:popStep,folkrock:folkStep};
+/* 6. Kaski Beats: a slow, easy hill tune in the lok-pop style of the Pokhara side — madal, strummed guitar and soft bass,
+   a bansuri melody with the sarangi answering. An original tune written for Chiya Break (it is the default station in Pokhara). */
+const KAS={root:146.83,sc:[0,2,4,7,9],ch:[[0,4,7],[5,9,12],[0,4,7],[7,11,14],[-3,0,4],[5,9,12],[7,11,14],[0,4,7]],
+  A:[[[0,7,2],[2,6,1],[3,5,1],[4,6,2],[6,5,2]],[[0,4,3],[4,3,1],[5,4,1],[6,5,2]],[[0,7,2],[2,6,1],[3,5,1],[4,7,2],[6,8,2]],[[0,7,4],[5,6,1],[6,5,2]],
+     [[0,4,2],[2,5,2],[4,6,2],[6,5,1],[7,4,1]],[[0,3,3],[4,2,1],[5,3,1],[6,4,2]],[[0,5,2],[2,4,1],[3,3,1],[4,2,2],[6,3,2]],[[0,5,5]]]};
+let kasMel=5;
+function kaskiStep(n,t,sd){const s8=n%8,bar=n/8|0,sec=(bar/8|0)%4,c=KAS.ch[bar%8],R=KAS.root,sw=s8%2?sd*.08:0,tt=t+sw;
+  // madal: an easy khyali beat
+  if(s8===0)dhin(t,.4);if(s8===3)dhin(tt,.24);if(s8===4)dhin(t,.3);if(s8===2||s8===6)ta(t,.17);if(s8===7)ta(tt,.12);if(s8===5&&Math.random()<.5)slap(tt,.05);
+  // guitar and bass
+  if(s8===0||s8===4)strum(t,c.concat([c[0]+12]).map(k=>mt(R,k)),1,.075);if(s8===3||s8===7)strum(tt,c.map(k=>mt(R,k)),0,.05);
+  if(s8===0)lbass(t,mt(R/2,c[0]),sd*3.2,.2);if(s8===4)lbass(t,mt(R/2,c[0]+7),sd*2,.13);if(s8===6&&bar%2)lbass(t,mt(R/2,c[1]),sd*1.6,.11);
+  const nt=i=>mt(R*2,KAS.sc[i%5]+12*(i/5|0));
+  if(sec===0||sec===2){   // the tune: bansuri the first time, sarangi with the bansuri the next
+    KAS.A[bar%8].forEach(([s,i,l])=>{if(s!==s8)return;const d=sd*l*.94;if(sec===0)flute(t,nt(i),d,.12);else{bowed(t,nt(i)/2,d,.05,l>1&&Math.random()<.4?-2:0);if(l>1)flute(t,nt(i),d,.06);}});}
+  else if(sec===1){   // the sarangi wanders, the bansuri answers at the end of each line
+    if(t>=busy&&s8%2===0&&bar%2===0&&Math.random()<.7){kasMel=walk(kasMel,3,9);const d=sd*(2+(Math.random()*2|0));bowed(t,nt(kasMel)/2,d*.95,.05,Math.random()<.4?-2:0);busy=t+d;}
+    if(bar%2===1)[[0,7,2],[2,6,2],[4,5,3]].forEach(([s,i,l])=>{if(s===s8)flute(t,nt(i-(bar%4===3?2:0)),sd*l*.94,.11);});}
+  else if((s8===0||s8===3||s8===6)&&Math.random()<.7){kasMel=walk(kasMel,4,10);pluck(t,nt(kasMel),{dur:2,v:.16,bright:.5,damp:.996,lp:3600});}   // a quiet turn: guitar, madal and a few plucked notes
+  if(s8===0&&bar%8===0)strings(t,c.map(k=>mt(R,k)),sd*15,.006);}
+
+/* 7. Nephop Vibe: a laid-back Nepali hip-hop beat — a slow head-nod drum loop, deep bass, soft electric piano chords,
+   a short sarangi riff that comes round like a sample, a bansuri hook and little madal fills. An original beat, no words. */
+const NEP={root:220,sc:[0,3,5,7,10],ch:[[0,3,7,10],[-4,0,3,7],[-7,-4,0,3],[-5,-1,2,5]],
+  riff:[[[0,5,2],[2,4,1],[3,3,1],[4,4,2],[7,3,1]],[[0,2,3],[4,3,1],[5,2,1],[6,0,2]]],
+  hook:[[[0,7,3],[4,6,1],[5,5,1],[6,6,2]],[[0,5,4],[6,4,2]],[[0,7,3],[4,8,1],[5,7,1],[6,6,2]],[[0,5,6]]]};
+function nephopStep(n,t,sd){const s8=n%8,bar=n/8|0,sec=(bar/8|0)%4,c=NEP.ch[bar%4],R=NEP.root,sw=s8%2?sd*.2:0,tt=t+sw,drop=bar%16===15;
+  if(!drop){if(s8===0||s8===5||(s8===3&&bar%2===1))lkick(tt,s8===0?.42:.3);if(s8===2||s8===6)lsnare(t,.05);
+    hat(tt,s8%2?.006:.009);if(sec>0&&(s8===3||s8===7))hat(t+sd*.6,.004);if(s8===7&&bar%4===3){ta(t,.1);ta(t+sd*.5,.12);}}
+  else if(s8===4||s8===6||s8===7)dhin(t,.2+s8*.02);
+  if(s8===0)lbass(t,mt(R/4,c[0]),sd*2.6,.26);if(s8===3)lbass(tt,mt(R/4,c[0]),sd*1.2,.17);if(s8===5)lbass(tt,mt(R/4,c[0]+(bar%2?7:12)),sd*1.8,.16);
+  if(s8===0)c.forEach((k,i)=>epiano(t+i*.012,mt(R,k),sd*6.5,.03));if(s8===5&&bar%2)c.slice(1).forEach(k=>epiano(tt,mt(R,k+12),sd*2,.014));
+  const nt=i=>mt(R,NEP.sc[i%5]+12*(i/5|0));
+  if(sec!==0||bar%8>=4)NEP.riff[bar%2].forEach(([s,i,l])=>{if(s===s8)bowed(tt,nt(i),sd*l*.9,.034,s===0?-2:0);});
+  if(sec>=2&&bar%8>=4)NEP.hook[bar%4].forEach(([s,i,l])=>{if(s===s8)flute(tt,nt(i)*2,sd*l*.94,.085);});
+  if(sec===3&&s8===0&&bar%4===0)bell(t,R*2,.12);}
+/* In Pokhara the radio starts on Kaski Beats; leaving Pokhara it goes back to what was playing before (unless the visitor chose another station there). */
+let pkPrevSt=null;
+function tuneTo(id){st.station=id;try{setStationUI();if(radioOn){stopStation();startStation();}}catch(e){}}
+function placeStation(p){if(p==='pkr'){if(pkPrevSt===null){pkPrevSt=st.station;if(st.station!=='kaski')tuneTo('kaski');}}
+  else if(pkPrevSt!==null){const b=pkPrevSt;pkPrevSt=null;if(st.station==='kaski'&&b!=='kaski')tuneTo(b);}}
+const GEN={newa:newaStep,mithila:mithilaStep,dohori:dohoriStep,sitar:sitarStep,guitar:guitarStep,pop:popStep,folkrock:folkStep,kaski:kaskiStep,nephop:nephopStep};
 /* recorded stations play through an <audio> element routed into the same volume control */
 let trackEl=null,fileG=null,tuning=false;
 function startStation(){const s=station();tuning=false;hudT=0;
