@@ -2822,7 +2822,7 @@ if(canHover)sceneEl.addEventListener('pointermove',e=>{sceneEl.style.cursor=pige
 const home=document.getElementById('home'),placesEl=document.getElementById('places'),homeBtn=document.getElementById('homeBtn');
 const SLUG={ktm:'kathmandu',patan:'patan',bkt:'bhaktapur',pkr:'pokhara'},UNSLUG={kathmandu:'ktm',patan:'patan',bhaktapur:'bkt',pokhara:'pkr'};
 const HOME=[['ktm','Kathmandu Durbar Square','Nepal'],['patan','Patan Durbar Square','Nepal'],['bkt','Bhaktapur Durbar Square','Nepal'],
-  ['pkr','Pokhara','Nepal'],[null,'Sauraha, Chitwan','Nepal'],[null,'Doti','Nepal']];
+  ['pkr','Pokhara','Nepal'],[null,'Sauraha, Chitwan','Nepal'],[null,'Jiri, Dolakha','Nepal']];
 HOME.forEach(([id,name,country])=>{const b=document.createElement(id?'button':'div');b.className='pcard'+(id?'':' soon');
   const t=document.createElement('span');t.className='pthumb';
   if(id){b.type='button';b.dataset.go=id;b.setAttribute('aria-label',`Open ${name}, ${country}`);const im=document.createElement('img');im.alt='';im.loading='lazy';im.dataset.p=id;t.appendChild(im);b.addEventListener('click',()=>enter(id));}
