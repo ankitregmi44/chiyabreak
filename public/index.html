@@ -147,15 +147,31 @@ body.portrait .st-name{min-width:0;flex:1 1 0;overflow:hidden;text-overflow:elli
 .pcard.soon .pthumb span{font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;background:rgba(14,10,8,.6);padding:2px 8px;border-radius:3px}
 .pcard.soon .pname{color:var(--muted)}
 .thought{margin:clamp(8px,2.4vh,24px) clamp(18px,6vw,84px) 0;max-width:560px;padding:12px 16px}
-.thought b{display:block;font-family:var(--display);font-weight:400;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.thought b,.fd b{display:block;font-family:var(--display);font-weight:400;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.thought b span,.fd b span{color:var(--muted);letter-spacing:.06em}
 .thought p{margin:0;color:var(--fg);font-size:15px;line-height:1.55}
-.reacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.reacts[hidden]{display:none}
-.reacts button{display:inline-flex;align-items:center;gap:5px;background:rgba(242,231,215,.06);border:1px solid var(--line);border-radius:999px;color:var(--fg);font:inherit;font-size:14px;line-height:1;padding:6px 10px;cursor:pointer;transition:transform .15s ease,border-color .15s ease}
-.reacts button:hover{border-color:var(--muted);transform:translateY(-1px)}
-.reacts button[aria-pressed="true"]{border-color:var(--accent);background:rgba(242,231,215,.14)}
-.reacts .n{font-size:12.5px;color:var(--muted);min-width:1ch}
-@media (prefers-reduced-motion:reduce){.reacts button{transition:none}}
+.thought-row{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 12px;margin-top:10px}
+/* pixel reaction buttons: square corners, hard shadow, little pixel-art icons (drawn in REACTS in the script) */
+.reacts{display:flex;flex-wrap:wrap;gap:8px}
+.reacts[hidden]{visibility:hidden}
+.px{width:18px;height:18px;display:block;flex:none;image-rendering:pixelated}
+.reacts button,.rc{display:inline-flex;align-items:center;gap:6px;font-family:var(--display);font-size:13px;line-height:1;color:var(--fg)}
+.reacts button{background:#2a211a;border:2px solid #5a4a3a;border-radius:0;box-shadow:2px 2px 0 #0c0907;padding:5px 8px 5px 6px;cursor:pointer}
+.reacts button:hover{border-color:var(--muted)}
+.reacts button:active{transform:translate(2px,2px);box-shadow:none}
+.reacts button[aria-pressed="true"]{border-color:var(--accent);background:#3a2c1c;color:var(--accent)}
+.reacts .n{min-width:1ch;text-align:left}
+.older{font-family:var(--display);font-size:11px;letter-spacing:.06em;color:var(--muted);opacity:.5;background:none;border:0;padding:2px 0;cursor:pointer;margin-left:auto;transition:opacity .2s ease}
+.older:hover,.older:focus-visible{opacity:1;color:var(--accent)}
+.older[hidden]{display:none}
+/* earlier thoughts: a little diary */
+.fd{padding:12px 0;border-top:2px dashed var(--line)}
+.fd:first-child{border-top:0;padding-top:0}
+.fd p{margin:0 0 8px;font-size:15px}
+.fd .rcs{display:flex;flex-wrap:wrap;gap:12px}
+.fd .rc{color:var(--muted);font-size:12px}.fd .rc .px{width:14px;height:14px}
+#foodBody{margin-bottom:12px}
+@media (prefers-reduced-motion:reduce){.older{transition:none}}
 .homebtn{font-family:var(--display);font-size:13px;color:var(--fg);padding:5px 10px;cursor:pointer}
 .homebtn:hover{border-color:var(--muted)}
 body.athome .top,body.athome .setwrap,body.athome .nav,body.athome .rotate,body.athome .topright{display:none!important}
@@ -197,8 +213,9 @@ body.thumb .ui,body.thumb .home,body.thumb .fade,body.thumb .about-wrap{display:
       <p class="home-sub">Pick a place, sit down with a cup of chiya (tea) and listen for a while.</p>
     </div>
     <div class="places" id="places"></div>
-    <!-- thought of the week: the words are in THOUGHT (search for "thought of the week" in the script) -->
-    <div class="thought plate"><b>Thought of the week</b><p id="thoughtTxt"></p><div class="reacts" id="reacts" role="group" aria-label="React to this thought" hidden></div></div>
+    <!-- food for thought: the words are in FOOD (search for "food for thought" in the script) -->
+    <div class="thought plate"><b>Food for thought <span id="foodDate"></span></b><p id="thoughtTxt"></p>
+      <div class="thought-row"><div class="reacts" id="reacts" role="group" aria-label="React to this thought" hidden></div><button type="button" class="older" id="olderBtn" aria-haspopup="dialog" hidden>Earlier thoughts ›</button></div></div>
   </div>
 </div>
 
@@ -229,6 +246,16 @@ body.thumb .ui,body.thumb .home,body.thumb .fade,body.thumb .about-wrap{display:
     <p>I am new to this and will try to update as I go along. More places are coming.</p>
     <p>For any questions, email me at <a href="mailto:eriktaming@gmail.com">eriktaming@gmail.com</a>.</p>
     <p class="sign">Kind regards,<br>AR</p>
+  </div>
+</div>
+
+<!-- earlier "food for thought" notes, newest first -->
+<div class="about-wrap" id="food" role="dialog" aria-modal="true" aria-labelledby="foodTitle" hidden>
+  <div class="about plate">
+    <button type="button" class="close" id="foodClose" aria-label="Close">✕</button>
+    <h2 id="foodTitle">Earlier thoughts</h2>
+    <div id="foodBody"></div>
+    <p class="sign">AR</p>
   </div>
 </div>
 
@@ -2372,7 +2399,7 @@ function go(d){if(switching)return;switching=true;fade.classList.add('on');
 navL.addEventListener('click',()=>go(-1));navR.addEventListener('click',()=>go(1));
 if(canHover){addEventListener('pointermove',e=>{const edge=Math.max(90,innerWidth*.14);navL.classList.toggle('show',e.clientX<edge);navR.classList.toggle('show',e.clientX>innerWidth-edge);});
   document.addEventListener('pointerleave',()=>{navL.classList.remove('show');navR.classList.remove('show');});}
-addEventListener('keydown',e=>{if(!about.hidden||!think.hidden||!home.hidden||e.target.tagName==="INPUT")return;if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1);});
+addEventListener('keydown',e=>{if(!about.hidden||!think.hidden||!food.hidden||!home.hidden||e.target.tagName==="INPUT")return;if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1);});
 
 /* ---------- tap a dog: wakes it up (not at night), double tap: it rolls over ---------- */
 const sceneEl=document.getElementById('scene');let lastTap={dg:null,t:0};
@@ -2429,22 +2456,53 @@ function enter(p){if(switching)return;switching=true;fade.classList.add('on');
 homeBtn.addEventListener('click',()=>showHome());
 // the browser's back button returns to the home screen
 addEventListener('popstate',()=>{const p=UNSLUG[location.hash.slice(1).toLowerCase()];if(p){if(p!==place){setPlace(p);setNav();}hideHome();}else if(!location.hash)showHome(false);});
-/* ---------- thought of the week ----------
-   To post a new thought: change the words in `text` AND give it a new `id` (the date you post it, like 2026-11-18).
-   A new id starts the reactions again from zero; the old thought's reactions stay saved under its old id.
+/* ---------- food for thought ----------
+   FOOD lists my thoughts, NEWEST FIRST. To post a new one, add a new line at the TOP:
+     {id:'2026-11-18',text:'The new words.'},
+   `id` is the date it is posted (year-month-day); it is shown next to the heading and keeps that thought's reactions.
+   The first one shows on the home screen; the others move to "Earlier thoughts" (the small link at the bottom right of the box).
    Reactions are counted by /api/react (worker/index.js). A visitor can give one reaction per visit and can change it. */
-const THOUGHT={id:'2026-11-11',text:'Things are complex. Well, life is easy, but thoughts, they are complex. Thirty-plus years in, and I have just realised I am an adult now. So for the next thirty years or so, I will be trying hard to act like a responsible person.'};
-const REACTS=[['up','👍','Thumbs up'],['love','❤️','Love'],['sad','😢','Sad'],['laugh','😂','Laugh'],['angry','😠','Angry']];
-{document.getElementById('thoughtTxt').textContent=THOUGHT.text;
-  const box=document.getElementById('reacts'),key='cb.react.'+THOUGHT.id,btn={};let mine=null,busy=false;
+const FOOD=[
+  {id:'2026-11-11',text:'Things are complex. Well, life is easy, but thoughts, they are complex. Thirty-plus years in, and I have just realised I am an adult now. So for the next thirty years or so, I will be trying hard to act like a responsible person.'},
+];
+// pixel-art icons, 9x9: each letter is one coloured square
+const PXC={y:'#f2c14e',Y:'#ffe08a',k:'#3a2616',b:'#6fb7e8',w:'#fff6e0',r:'#e0483e',R:'#ff8f80',o:'#e8703a',s:'#4f7fc0'};
+const REACTS=[
+  ['up','Thumbs up',['....yY...','....yy...','...yyy...','..yyyyyyy','ssyyyyyyy','ssyyyyyyy','ssyyyyyyy','ssyyyyyy.','...yyyyy.']],
+  ['love','Love',['.........','.rr...rr.','rRrr.rrrr','rRrrrrrrr','rrrrrrrrr','.rrrrrrr.','..rrrrr..','...rrr...','....r....']],
+  ['sad','Sad',['..yyyyy..','.yyyyyyy.','yyyyyyyyy','yykyyykyy','yybyyyyyy','yybkkkyyy','yykyyykyy','.yyyyyyy.','..yyyyy..']],
+  ['laugh','Laugh',['..yyyyy..','.yyyyyyy.','yykyyykyy','ykykykyky','byyyyyyyb','ykkkkkkky','yykwwwkyy','.yykkkyy.','..yyyyy..']],
+  ['angry','Angry',['..ooooo..','.ooooooo.','okoooooko','ookoookoo','ookoookoo','ooooooooo','oookkkooo','.okoooko.','..ooooo..']]];
+const pxIcon=g=>{let r='';g.forEach((row,y)=>[...row].forEach((ch,x)=>{if(PXC[ch])r+=`<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${PXC[ch]}"/>`;}));
+  return `<svg class="px" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const niceDate=id=>{const[y,m,d]=id.split('-').map(Number);return `${d} ${MON[m-1]} ${y}`;};
+const food=document.getElementById('food'),olderBtn=document.getElementById('olderBtn'),foodClose=document.getElementById('foodClose');
+{const now=FOOD[0];document.getElementById('thoughtTxt').textContent=now.text;document.getElementById('foodDate').textContent='· '+niceDate(now.id);
+  const box=document.getElementById('reacts'),key='cb.react.'+now.id,btn={};let mine=null,busy=false;
   try{mine=sessionStorage.getItem(key);}catch(e){}
-  const show=c=>{REACTS.forEach(([k,,l])=>{const n=c[k]||0;btn[k].querySelector('.n').textContent=n;btn[k].setAttribute('aria-pressed',String(mine===k));btn[k].setAttribute('aria-label',`${l}: ${n}`);});box.hidden=false;};
-  REACTS.forEach(([k,e,l])=>{const b=document.createElement('button');b.type='button';b.title=l;b.innerHTML=`<span aria-hidden="true">${e}</span><span class="n">0</span>`;btn[k]=b;box.appendChild(b);
+  const show=c=>{REACTS.forEach(([k,l])=>{const n=c[k]||0;btn[k].querySelector('.n').textContent=n;btn[k].setAttribute('aria-pressed',String(mine===k));btn[k].setAttribute('aria-label',`${l}: ${n}`);});box.hidden=false;};
+  REACTS.forEach(([k,l,g])=>{const b=document.createElement('button');b.type='button';b.title=l;b.innerHTML=pxIcon(g)+'<span class="n">0</span>';btn[k]=b;box.appendChild(b);
     b.addEventListener('click',async()=>{if(busy||mine===k)return;busy=true;
-      try{const r=await fetch(`/api/react?id=${THOUGHT.id}&r=${k}`+(mine?`&prev=${mine}`:''),{method:'POST',cache:'no-store'});if(!r.ok)throw 0;const c=await r.json();
+      try{const r=await fetch(`/api/react?id=${now.id}&r=${k}`+(mine?`&prev=${mine}`:''),{method:'POST',cache:'no-store'});if(!r.ok)throw 0;const c=await r.json();
         mine=k;try{sessionStorage.setItem(key,k);}catch(e){}show(c);}catch(e){}busy=false;});});
+  const isThumb=new URLSearchParams(location.search).has('thumb');
   // the buttons stay hidden if the counter cannot be reached
-  if(!new URLSearchParams(location.search).has('thumb'))fetch('/api/react?id='+THOUGHT.id,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(show).catch(()=>{});}
+  if(!isThumb)fetch('/api/react?id='+now.id,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(show).catch(()=>{});
+  // earlier thoughts: the small link only appears once there is more than one thought
+  const old=FOOD.slice(1);olderBtn.hidden=!old.length;
+  function openFood(){const bd=document.getElementById('foodBody');bd.textContent='';
+    if(!old.length){const p=document.createElement('p');p.textContent='Nothing older yet. This is the very first one.';bd.appendChild(p);}
+    old.forEach(t=>{const d=document.createElement('div');d.className='fd';const h=document.createElement('b');h.textContent=niceDate(t.id);const p=document.createElement('p');p.textContent=t.text;
+      const rc=document.createElement('div');rc.className='rcs';rc.dataset.id=t.id;d.appendChild(h);d.appendChild(p);d.appendChild(rc);bd.appendChild(d);});
+    food.hidden=false;foodClose.focus();
+    if(old.length)fetch('/api/react?ids='+old.slice(0,60).map(t=>t.id).join(','),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(all=>{
+      bd.querySelectorAll('.rcs').forEach(rc=>{const c=all[rc.dataset.id]||{};rc.innerHTML=REACTS.filter(([k])=>c[k]>0).map(([k,l,g])=>`<span class="rc" title="${l}">${pxIcon(g)}${c[k]}</span>`).join('');});}).catch(()=>{});}
+  function closeFood(){food.hidden=true;if(!olderBtn.hidden)olderBtn.focus();}
+  olderBtn.addEventListener('click',openFood);foodClose.addEventListener('click',closeFood);food.addEventListener('click',e=>{if(e.target===food)closeFood();});
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&!food.hidden)closeFood();});
+  if(!isThumb&&location.hash.toLowerCase()==='#thoughts'){history.replaceState(null,'',location.pathname);openFood();}   // preview: chiyabreak.com/#thoughts
+}
 const THUMB=new URLSearchParams(location.search).get('thumb');if(THUMB)document.body.classList.add('thumb');
 {const hs=location.hash.slice(1).toLowerCase();setPlace(THUMB&&PL[THUMB]?THUMB:hs==='patan'?'patan':hs==='bhaktapur'?'bkt':'ktm');}setNav();
 if(THUMB||location.hash)hideHome();else showHome(false);   // a link like chiyabreak.com/#patan opens that place directly

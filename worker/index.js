@@ -33,9 +33,17 @@ const REACTS = ["up", "love", "sad", "laugh", "angry"];
 // Reactions for one thought. id is the date of the thought (2026-11-11).
 // GET reads the counts; POST adds one to `r` (and takes one away from `prev` when a visitor changes their mind).
 Counter.prototype.react = async function (request, url) {
+  const s = this.ctx.storage;
+  const tidy = (c) => { const o = {}; for (const k of REACTS) o[k] = (c && c[k]) || 0; return o; };
+  // ?ids=2026-11-11,2026-11-04 reads the counts of several thoughts at once (for "Earlier thoughts")
+  const ids = url.searchParams.get("ids");
+  if (ids && request.method === "GET") {
+    const all = {};
+    for (const i of ids.split(",").slice(0, 60)) if (/^\d{4}-\d{2}-\d{2}$/.test(i)) all[i] = tidy(await s.get("react:" + i));
+    return Response.json(all, { headers: { "cache-control": "no-store" } });
+  }
   const id = url.searchParams.get("id") || "";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(id)) return new Response("bad id", { status: 400 });
-  const s = this.ctx.storage;
   const counts = (await s.get("react:" + id)) || {};
   if (request.method === "POST") {
     const r = url.searchParams.get("r"), prev = url.searchParams.get("prev");
@@ -46,9 +54,7 @@ Counter.prototype.react = async function (request, url) {
       await s.put("react:" + id, counts);
     }
   }
-  const out = {};
-  for (const k of REACTS) out[k] = counts[k] || 0;
-  return Response.json(out, { headers: { "cache-control": "no-store" } });
+  return Response.json(tidy(counts), { headers: { "cache-control": "no-store" } });
 };
 
 export default {

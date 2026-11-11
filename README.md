@@ -11,7 +11,7 @@ Shops (momo, chiya, clay pots in Kathmandu, statues in Patan, juju dhau in Bhakt
 
 Visitors land on a home screen and pick a place; "‹ All places" on any scene goes back. On computers the small pictures on the home screen move (they are this same page opened with `?thumb=ktm`, `?thumb=patan` or `?thumb=bkt`); phones show still pictures from `public/thumbs/`.
 To add a place card, edit `HOME` in index.html (search for "home screen: choose a place"). To change what I say about a place, edit `THOUGHTS` (search for "my thoughts about each place").
-To post a new thought of the week, edit `THOUGHT` (search for "thought of the week"): change the words and give it a new `id` (the date), so the reaction buttons (👍 ❤️ 😢 😂 😠) start again from zero.
+To post a new "food for thought", add a line at the top of `FOOD` (search for "food for thought") with the date as its `id`. The newest shows on the home screen with pixel reaction buttons; older ones move to "Earlier thoughts".
 
 ## Files
 - `public/index.html` — the whole website (scene, music, controls). Edit this to change the site.
@@ -30,6 +30,7 @@ Any change saved here goes live on chiyabreak.com automatically in about a minut
 ## Previews
 - `chiyabreak.com/#tihar` or `/#dashain` — show the festival decorations any day (on Tihar nights, 6 PM–midnight, children play with jhurjhure sparklers, gamala and little crackers)
 - `chiyabreak.com/#patan` or `/#bhaktapur` — open straight in that square
+- `chiyabreak.com/#thoughts` — open the "Earlier thoughts" diary (the small link only shows once there is more than one thought)
 - `chiyabreak.com/#plane` — an aeroplane crosses the sky in a few seconds (normally every few hours)
 - `chiyabreak.com/#kukur` — Kukur Tihar (7–8 Nov 2026): the dogs get a red tika and a leaf plate of food
 - `chiyabreak.com/#woof` — the dogs bark a few seconds after sound is turned on
