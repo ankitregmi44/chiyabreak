@@ -14,7 +14,7 @@ To add a place card, edit `HOME` in index.html (search for "home screen: choose 
 To post a new "food for thought", add a line at the top of `FOOD` (search for "food for thought") with the date as its `id`. The newest shows on the home screen with pixel reaction buttons; older ones move to "Earlier thoughts".
 
 ## Pokhara
-The World Peace Stupa (people climb its stairs and sit), the golden five-headed Ganesh, Phewa lake with painted boats under the Annapurna range (the lake mirrors the mountains; clouds drift across them), a waterfall, the Shiva statue above a chiya shop, and painted kerbs and a mural wall along the road.
+The five-headed Ganesh, the World Peace Stupa (people climb its stairs and sit), Phewa lake with painted boats under the Annapurna range (the lake mirrors the mountains; clouds drift across them), a waterfall, the Shiva statue above a chiya shop, and a plain stone wall and street lamps along the road. There are no festival decorations in Pokhara.
 An aama sits on the steps with the radio and roasts makai: she reads her paper, sips tea, fans the fire now and then, and people stop to buy a paper cone of makai. Her fire and its thin smoke are only there while she is awake (she sleeps 9 PM–6 AM like the others).
 Rowing boats go out on the lake and come back in the daytime; motorbikes pass now and then; paragliders (every 1.5–3 hours, 7 AM–5:30 PM) and a hot air balloon (every 2–4 hours) appear in fair weather.
 All of it is in index.html: search for "Pokhara (Lakeside)".
